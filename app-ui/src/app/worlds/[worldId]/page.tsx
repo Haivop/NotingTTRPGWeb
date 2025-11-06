@@ -1,7 +1,10 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { TwoColumnLayout } from "@/components/layout/TwoColumnLayout";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { ItemGridSection } from "@/components/layout/ItemGridSection";
 import { Input } from "@/components/ui/Input";
+
+import { getItemsByType, WorldItem } from "@/lib/world-data";
 
 const sidebarSections = [
   "Maps",
@@ -15,42 +18,7 @@ const sidebarSections = [
   "Timelines",
 ];
 
-const continentSummaries = [
-  {
-    name: "Sapphirine Isles",
-    detail: "Floating archipelago governed by skyward drakes.",
-  },
-  {
-    name: "Verdant Hollow",
-    detail: "Bioluminescent forests rooted in ancient leviathans.",
-  },
-];
-
-const characterHighlights = [
-  {
-    name: "Captain Elowyn Stratus",
-    role: "Aetherwind privateer turned reluctant hero.",
-  },
-  {
-    name: "Arcanist Veyl",
-    role: "Keeper of the stormbound archives beneath the capital.",
-  },
-];
-
-const questThreads = [
-  {
-    title: "The Tempest Choir",
-    status: "In Motion",
-    hook: "Negotiate peace with the sentient storms haunting the sky lanes.",
-  },
-  {
-    title: "Shards of the Primordial",
-    status: "Rumored",
-    hook: "Gather relics forged before the first sunrise.",
-  },
-];
-
-export default function WorldOverviewPage({
+export default async function WorldOverviewPage({
   params,
 }: {
   params: { worldId: string };
@@ -62,11 +30,33 @@ export default function WorldOverviewPage({
         .join(" ")
     : "Unnamed Realm";
 
+  const worldId = params.worldId;
+
+  const [
+    continents,
+    regions,
+    locations,
+    factions,
+    artifacts,
+    timelines,
+    quests,
+    characters,
+  ] = await Promise.all([
+    getItemsByType(worldId, "continents"),
+    getItemsByType(worldId, "regions"),
+    getItemsByType(worldId, "locations"),
+    getItemsByType(worldId, "factions"),
+    getItemsByType(worldId, "artifacts"),
+    getItemsByType(worldId, "timelines"),
+    getItemsByType(worldId, "quests"),
+    getItemsByType(worldId, "characters"),
+  ]);
+
   return (
     <div className="space-y-10">
       <PageContainer>
         <header className="flex flex-col gap-3">
-          <p className="font-display text-xs text-purple-200/80">
+          <p className="font-display text-l text-purple-200/80">
             WORLD OVERVIEW
           </p>
           <h1 className="text-3xl font-semibold text-white">{worldName}</h1>
@@ -116,58 +106,74 @@ export default function WorldOverviewPage({
             </p>
           </div>
         </GlassPanel>
+        {/* CONTINENTS: Використовуємо ItemGridSection (замість GlassPanel) */}
+        <ItemGridSection
+          id="continents"
+          title="CONTINENTS"
+          data={continents}
+          addNewText="+ New Continent"
+          //worldId={worldId}
+        />
 
-        <div className="grid gap-8 lg:grid-cols-2">
-          <GlassPanel id="continents" title="CONTINENTS">
-            <ul className="space-y-5 text-sm text-white/70">
-              {continentSummaries.map((continent) => (
-                <li key={continent.name} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <p className="font-display text-[11px] uppercase tracking-[0.3em] text-purple-100/90">
-                    {continent.name}
-                  </p>
-                  <p className="mt-2">{continent.detail}</p>
-                </li>
-              ))}
-            </ul>
-          </GlassPanel>
+        {/* CHARACTERS: Використовуємо ItemGridSection (замість GlassPanel) */}
+        <ItemGridSection
+          id="characters"
+          title="CHARACTERS"
+          data={characters}
+          addNewText="+ New Character"
+          //worldId={worldId}
+        />
 
-          <GlassPanel id="characters" title="CHARACTERS">
-            <ul className="space-y-5 text-sm text-white/70">
-              {characterHighlights.map((character) => (
-                <li
-                  key={character.name}
-                  className="flex flex-col gap-2 rounded-3xl border border-white/10 bg-white/5 p-5"
-                >
-                  <p className="font-display text-[11px] uppercase tracking-[0.3em] text-purple-100/80">
-                    {character.name}
-                  </p>
-                  <p>{character.role}</p>
-                </li>
-              ))}
-            </ul>
-          </GlassPanel>
-        </div>
+        {/* QUESTS: Використовуємо ItemGridSection (замість GlassPanel) */}
+        <ItemGridSection
+          id="quests"
+          title="QUEST THREADS"
+          data={quests}
+          addNewText="+ New Quest"
+          //worldId={worldId}
+        />
 
-        <GlassPanel id="quests" title="QUEST THREADS">
-          <div className="space-y-5">
-            {questThreads.map((quest) => (
-              <div
-                key={quest.title}
-                className="rounded-3xl border border-white/10 bg-black/10 p-6"
-              >
-                <div className="flex flex-wrap items-center gap-3">
-                  <p className="font-display text-xs text-purple-100/80">
-                    {quest.title}
-                  </p>
-                  <span className="rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/55">
-                    {quest.status}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-white/70">{quest.hook}</p>
-              </div>
-            ))}
-          </div>
-        </GlassPanel>
+        {/* 2. ДОДАЄМО ВСІ ІНШІ СЕКЦІЇ (ItemGridSection) */}
+
+        <ItemGridSection
+          id="regions"
+          title="REGIONS"
+          data={regions}
+          addNewText="+ New Region"
+          //worldId={worldId}
+        />
+
+        <ItemGridSection
+          id="locations"
+          title="LOCATIONS"
+          data={locations}
+          addNewText="+ New Location"
+          //worldId={worldId}
+        />
+
+        <ItemGridSection
+          id="factions"
+          title="FACTIONS"
+          data={factions}
+          addNewText="+ New Faction"
+          //worldId={worldId}
+        />
+
+        <ItemGridSection
+          id="artifacts"
+          title="ARTIFACTS"
+          data={artifacts}
+          addNewText="+ New Artifact"
+          //worldId={worldId}
+        />
+
+        <ItemGridSection
+          id="timelines"
+          title="TIMELINES"
+          data={timelines}
+          addNewText="+ New Timeline"
+          //worldId={worldId}
+        />
       </TwoColumnLayout>
     </div>
   );
