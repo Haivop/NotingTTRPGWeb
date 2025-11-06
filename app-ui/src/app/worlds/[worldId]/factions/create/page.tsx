@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
+const TEMP_CREATE_ID = "new-temp-id";
 const ITEM_TYPE = "characters";
 
 export default function CreateCharacterPage(/* params */) {
@@ -56,6 +57,10 @@ export default function CreateCharacterPage(/* params */) {
         <h1 className="text-3xl font-semibold text-white">
           Create {characterName}
         </h1>
+        <p className="max-w-3xl text-sm text-white/70">
+          Flesh out relationships, factions, and story beats. Keep your players
+          guessing with layered secrets and notes.
+        </p>
       </header>
 
       <GlassPanel>
