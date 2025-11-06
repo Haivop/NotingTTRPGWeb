@@ -17,7 +17,7 @@ export function SiteHeader({ cta, className }: SiteHeaderProps) {
     <header
       className={cn(
         "sticky top-0 z-40 border-b border-white/10 bg-[#080818]/70 backdrop-blur-xl",
-        className,
+        className
       )}
     >
       <div className="page-container flex items-center justify-between gap-6 py-4">

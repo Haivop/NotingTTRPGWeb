@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <PageContainer className="max-w-5xl">
       <div className="glass-panel grid gap-10 overflow-hidden p-0 md:grid-cols-[1.1fr_1fr]">
@@ -13,11 +13,11 @@ export default function SignInPage() {
               Worldcraftery
             </p>
             <h1 className="text-3xl font-semibold text-white">
-              Re-enter the Archive
+              Unseal Your First Codex
             </h1>
             <p className="text-sm">
-              Continue scribing legends, sculpting realms, and guiding your
-              table through luminous adventures.
+              Begin your journey as an Archivist. Start scribing legends,
+              sculpting realms, and charting luminous adventures for your table.
             </p>
           </div>
           <div
@@ -29,14 +29,21 @@ export default function SignInPage() {
         <div className="flex flex-col gap-8 p-8 md:p-10">
           <header className="space-y-2">
             <p className="font-display text-m text-purple-200 text-center">
-              SIGN IN
+              SIGN UP
             </p>
             <h2 className="text-2xl font-semibold text-white text-center">
               Unlock your Codex
             </h2>
           </header>
 
-          <form className="space-y-6">
+          <form className="space-y-4">
+            <div>
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Username
+              </label>
+              <Input type="text" placeholder="Creator" className="mt-2" />
+            </div>
+
             <div>
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Email
@@ -47,41 +54,33 @@ export default function SignInPage() {
                 className="mt-2"
               />
             </div>
+
             <div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Password
-                </label>
-                <Link
-                  href="#"
-                  className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200"
-                >
-                  Forgot?
-                </Link>
-              </div>
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Password
+              </label>
               <Input type="password" placeholder="••••••••" className="mt-2" />
             </div>
 
             <Button type="submit" className="w-full">
-              Sign In
+              Sign Up
             </Button>
             <button
               type="button"
               className="w-full rounded-full border border-white/20 px-6 py-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/70 transition hover:border-white/40 hover:text-white"
             >
-              Sign in with Google
+              Sign up with Google
             </button>
+            <p className="text-sm text-white/60 text-center">
+              Already an Archivist?{" "}
+              <Link
+                href="/sign-in"
+                className="font-semibold uppercase tracking-[0.2em] text-purple-200"
+              >
+                Sign In
+              </Link>
+            </p>
           </form>
-
-          <p className="text-sm text-white/60">
-            New to Worldcraftery?{" "}
-            <Link
-              href="/worlds/create"
-              className="font-semibold uppercase tracking-[0.2em] text-purple-200"
-            >
-              Begin your first world
-            </Link>
-          </p>
         </div>
       </div>
     </PageContainer>

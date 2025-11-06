@@ -28,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
+      <body
+        className={`${displayFont.variable} ${bodyFont.variable} antialiased`}
+      >
         <div className="relative min-h-screen">
           <div
             aria-hidden
