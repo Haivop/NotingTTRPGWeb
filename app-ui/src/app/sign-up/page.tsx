@@ -1,9 +1,25 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    await login();
+
+    router.push("/hub");
+  };
+
   return (
     <PageContainer className="max-w-5xl">
       <div className="glass-panel grid gap-10 overflow-hidden p-0 md:grid-cols-[1.1fr_1fr]">
@@ -36,7 +52,7 @@ export default function SignUpPage() {
             </h2>
           </header>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSignUp}>
             <div>
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Username

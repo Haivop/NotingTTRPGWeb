@@ -7,12 +7,23 @@ const navLinks = [
   { href: "/account", label: "Account" },
 ];
 
-interface SiteHeaderProps {
+const SIGNUP_ROUTE = "/sign-up";
+
+export interface SiteHeaderProps {
   cta?: React.ReactNode;
   className?: string;
+  isLoggedIn: boolean;
 }
 
-export function SiteHeader({ cta, className }: SiteHeaderProps) {
+export function SiteHeader({ cta, className, isLoggedIn }: SiteHeaderProps) {
+  const getDestinationHref = (originalHref: string) => {
+    // Якщо користувач НЕ зареєстрований І це захищений маршрут, ведемо на SIGNUP_ROUTE
+    if (!isLoggedIn && originalHref !== "/") {
+      return SIGNUP_ROUTE;
+    }
+    return originalHref;
+  };
+
   return (
     <header
       className={cn(
@@ -38,7 +49,7 @@ export function SiteHeader({ cta, className }: SiteHeaderProps) {
             {navLinks.map((link) => (
               <Link
                 key={link.href}
-                href={link.href}
+                href={getDestinationHref(link.href)}
                 className="group relative transition duration-200 hover:text-white"
               >
                 {link.label}
@@ -47,7 +58,7 @@ export function SiteHeader({ cta, className }: SiteHeaderProps) {
             ))}
           </nav>
           <Link
-            href="/worlds/create"
+            href={getDestinationHref("/worlds/create")}
             className="group hidden rounded-full border border-purple-400/40 bg-purple-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-purple-100 shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:border-purple-200/60 hover:bg-purple-400/20 md:inline-flex"
           >
             New World

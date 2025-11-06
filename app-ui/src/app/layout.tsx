@@ -3,6 +3,8 @@ import { Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { AuthContextProvider } from "@/lib/AuthContext";
+import { AuthHeaderWrapper } from "@/components/layout/AuthHeaderWrapper";
 
 const displayFont = Cinzel({
   variable: "--font-display",
@@ -37,8 +39,10 @@ export default function RootLayout({
             className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(148,163,246,0.22),transparent_55%),radial-gradient(circle_at_85%_15%,rgba(192,132,252,0.28),transparent_50%),radial-gradient(circle_at_10%_90%,rgba(251,146,169,0.16),transparent_50%)]"
           />
           <div className="relative z-10 flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1 pb-20 pt-10">{children}</main>
+            <AuthContextProvider>
+              <AuthHeaderWrapper />
+              <main className="mt-5">{children}</main>
+            </AuthContextProvider>
             <SiteFooter />
           </div>
         </div>
