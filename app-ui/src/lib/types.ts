@@ -116,6 +116,7 @@ export interface ItemFormData {
 
 export interface WorldEntity {
   id: string;
+  autherId: string;
   name: string;
   description: string;
   contributors: string;
@@ -124,4 +125,9 @@ export interface WorldEntity {
   themes: string;
   starting_region: string;
   visibility: boolean;
+}
+
+export interface UserEntity {
+  id: string;
+  username: string;
 }

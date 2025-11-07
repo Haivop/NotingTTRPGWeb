@@ -1,46 +1,58 @@
 "use client";
 
 import React, { useState, useEffect, createContext, useContext } from "react";
+// 💡 Припускаємо, що UserEntity імпортується з files/types:
+import { UserEntity } from "@/lib/types";
 import {
   getCurrentAuthStatus,
   signInUser,
   signOutUser,
-  AuthStatus,
+  AuthStatus, // 'loading', 'guest', 'user'
 } from "@/lib/auth-api";
 
 // --- I. ЛОГІКА СТАНУ ---
-// Це внутрішній хук, який керує станом
 function useAuthLogic() {
   const [status, setStatus] = useState<AuthStatus>("loading");
+  // 🏆 1. ДОДАНО: Стан для зберігання об'єкта користувача
+  const [user, setUser] = useState<UserEntity | null>(null); // Завантаження статусу при монтуванні (імітація перевірки сесії)
 
-  // Завантаження статусу при монтуванні (імітація перевірки сесії)
   useEffect(() => {
-    getCurrentAuthStatus().then((initialStatus) => {
-      setStatus(initialStatus);
+    // getCurrentAuthStatus тепер повертає UserEntity | null
+    getCurrentAuthStatus().then((userProfile: UserEntity | null) => {
+      if (userProfile) {
+        setStatus("user");
+        setUser(userProfile); // ✅ ЗБЕРІГАЄМО ОБ'ЄКТ
+      } else {
+        setStatus("guest");
+        setUser(null);
+      }
     });
   }, []);
 
   const login = async () => {
     setStatus("loading");
-    await signInUser();
+    // signInUser тепер повертає UserEntity
+    const userProfile = await signInUser();
+    setUser(userProfile); // ✅ ЗБЕРІГАЄМО
     setStatus("user");
   };
 
   const logout = async () => {
     setStatus("loading");
-    await signOutUser();
+    await signOutUser(); // signOutUser очищає сховище
+    setUser(null); // ✅ ОЧИЩУЄМО
     setStatus("guest");
   };
 
   return {
     isLoggedIn: status === "user",
     isLoading: status === "loading",
+    user, // 🏆 2. ПОВЕРТАЄМО ОБ'ЄКТ КОРИСТУВАЧА
     login,
     logout,
     status,
   };
 }
-
 // --- II. КОНТЕКСТ ТА ПРОВАЙДЕР ---
 
 type AuthContextType = ReturnType<typeof useAuthLogic>;
