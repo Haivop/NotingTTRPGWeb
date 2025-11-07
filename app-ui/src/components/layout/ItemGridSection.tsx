@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { useWorldItems } from "@/lib/useWorldItems";
+import { useWorldItems } from "@/hooks/useWorldItems";
 
 interface GridItem {
   name: string;

@@ -3,7 +3,7 @@
 
 import React from "react";
 import { SiteHeader, SiteHeaderProps } from "./SiteHeader";
-import { useAuth } from "@/lib/AuthContext"; // 👈 Імпорт Context Hook
+import { useAuth } from "@/components/layout/AuthContext"; // 👈 Імпорт Context Hook
 
 // Визначаємо пропси обгортки (вона не вимагає isLoggedIn, бо додає його сама)
 type AuthWrapperProps = Omit<SiteHeaderProps, "isLoggedIn">;

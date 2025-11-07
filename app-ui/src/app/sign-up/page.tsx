@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/components/layout/AuthContext";
 
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";

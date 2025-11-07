@@ -3,14 +3,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import {
-  getItemById,
-  deleteItem,
-  updateItem,
-  ItemFormData,
-  WorldItem,
-  LocationItem,
-} from "@/lib/world-data"; // Функції API
+import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
+
+import { ItemFormData, WorldItem, LocationItem } from "@/lib/types";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";

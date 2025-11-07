@@ -3,14 +3,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import {
-  getItemById,
-  deleteItem,
-  updateItem,
-  ItemFormData,
-  WorldItem,
-  CharacterItem,
-} from "@/lib/world-data"; // Функції API
+import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
+
+import { ItemFormData, WorldItem, FactionItem } from "@/lib/types";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -32,7 +27,7 @@ export default function EditFactionPage({
   const worldId = routeParams.worldId as string;
   const factionId = routeParams.factionId as string;
 
-  const [factionData, setFactionData] = useState<CharacterItem | null>(null);
+  const [factionData, setFactionData] = useState<FactionItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 1. Асинхронне завантаження даних персонажа ---
@@ -41,7 +36,7 @@ export default function EditFactionPage({
 
     getItemById(factionId).then((data: WorldItem | null) => {
       if (isMounted) {
-        setFactionData(data as CharacterItem);
+        setFactionData(data as FactionItem);
         setIsLoading(false);
       }
     });
