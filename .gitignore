@@ -1,0 +1,11 @@
+# Node modules & Dependencies
+server/node_modules/
+server/package-lock.json
+
+# Config files
+server/config/
+
+# Dev Temp Files
+server/src/views/
+
+
