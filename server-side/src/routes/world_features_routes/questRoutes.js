@@ -1,5 +1,5 @@
-const express = require("express");
-const quest = express.Router({ mergeParams: true });
+import { Router } from "express";
+const quest = Router({ mergeParams: true });
 
 quest.route("/:questId")
     .get((req, res) => {
@@ -8,8 +8,13 @@ quest.route("/:questId")
     .post((req, res) => {})
     .delete((req, res) => {})
 
+quest.route("/:questId/edit")
+    .get((req, res) => {})
+    .post((req, res) => {})
+    .delete((req, res) => {});
+
 quest.route("/create")
     .get((req, res) => {})
     .post((req, res) => {});
 
-module.exports = quest;
+export default quest;

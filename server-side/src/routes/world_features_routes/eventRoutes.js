@@ -1,5 +1,5 @@
-const express = require("express");
-const event = express.Router({ mergeParams: true });
+import { Router } from "express";
+const event = Router({ mergeParams: true });
 
 event.route("/:eventId")
     .get((req, res) => {
@@ -7,8 +7,13 @@ event.route("/:eventId")
     })
     .post((req, res) => {});
 
+event.route("/:eventId/edit")
+    .get((req, res) => {})
+    .post((req, res) => {})
+    .delete((req, res) => {});
+
 event.route("/create")
     .get((req, res) => {})
     .post((req, res) => {});
 
-module.exports = event;
+export default event;

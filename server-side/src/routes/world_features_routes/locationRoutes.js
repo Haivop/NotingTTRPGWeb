@@ -1,5 +1,5 @@
-const express = require("express");
-const location = express.Router({ mergeParams: true });
+import { Router } from "express";
+const location = Router({ mergeParams: true });
 
 location.route("/:locationId")
     .get((req, res) => {
@@ -7,8 +7,13 @@ location.route("/:locationId")
     })
     .post((req, res) => {});
 
+location.route("/:locationId/edit")
+    .get((req, res) => {})
+    .post((req, res) => {})
+    .delete((req, res) => {});
+
 location.route("/create")
     .get((req, res) => {})
     .post((req, res) => {});
 
-module.exports = location;
+export default location;

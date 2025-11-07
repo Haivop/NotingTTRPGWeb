@@ -1,5 +1,5 @@
-const express = require("express");
-const character = express.Router({ mergeParams: true });
+import { Router } from "express";
+const character = Router({ mergeParams: true });
 
 character.route("/:characterId")
     .get((req, res) => {
@@ -7,8 +7,13 @@ character.route("/:characterId")
     })
     .post((req, res) => {});
 
+character.route("/:characterId/edit")
+    .get((req, res) => {})
+    .post((req, res) => {})
+    .delete((req, res) => {});
+
 character.route("/create")
     .get((req, res) => {})
     .post((req, res) => {});
 
-module.exports = character;
+export default character;

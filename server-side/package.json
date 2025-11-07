@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "type": "module",
   "directories": {
     "doc": "docs"
   },
@@ -21,8 +22,11 @@
   },
   "homepage": "https://github.com/Haivop/NotingTTRPGWeb#readme",
   "dependencies": {
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "mysql2": "^3.15.3"
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.3",
+    "prisma": "^6.19.0"
   }
 }

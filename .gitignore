@@ -1,11 +1,14 @@
 # Node modules & Dependencies
-server/node_modules/
-server/package-lock.json
+server-side/node_modules/
+server-side/package-lock.json
 
 # Config files
-server/config/
+server/configs/
 
 # Dev Temp Files
-server/src/views/
+server-side/src/views/
+
+# DB
+notes_db/
 
 
