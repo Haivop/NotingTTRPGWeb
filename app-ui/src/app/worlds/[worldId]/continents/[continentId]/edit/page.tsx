@@ -192,7 +192,7 @@ export default function EditContinentPage({
                   Type
                 </label>
                 <Select
-                  defaultValue={continentData.status || "active"}
+                  defaultValue={continentData.location_type || "active"}
                   className="mt-2"
                   name="location_type"
                 >

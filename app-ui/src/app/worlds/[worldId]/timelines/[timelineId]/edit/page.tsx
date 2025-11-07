@@ -9,7 +9,7 @@ import {
   updateItem,
   ItemFormData,
   WorldItem,
-  CharacterItem,
+  TimelineItem,
 } from "@/lib/world-data"; // Функції API
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -19,31 +19,29 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "characters";
+const ITEM_TYPE = "timelines";
 
-export default function EditCharacterPage({
+export default function EditTimelinePage({
   params,
 }: {
-  params: { worldId: string; characterId: string }; // 👈 Змінено з questId на itemId
+  params: { worldId: string; timelineId: string }; // 👈 Змінено з questId на itemId
 }) {
   const router = useRouter();
-  //const { worldId, characterId } = params;
+  //const { worldId, timelineId } = params;
   const routeParams = useParams();
   const worldId = routeParams.worldId as string;
-  const characterId = routeParams.characterId as string;
+  const timelineId = routeParams.timelineId as string;
 
-  const [characterData, setCharacterData] = useState<CharacterItem | null>(
-    null
-  );
+  const [timelineData, setTimelineData] = useState<TimelineItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 1. Асинхронне завантаження даних персонажа ---
   useEffect(() => {
     let isMounted = true;
 
-    getItemById(characterId).then((data: WorldItem | null) => {
+    getItemById(timelineId).then((data: WorldItem | null) => {
       if (isMounted) {
-        setCharacterData(data as CharacterItem);
+        setTimelineData(data as TimelineItem);
         setIsLoading(false);
       }
     });
@@ -52,7 +50,7 @@ export default function EditCharacterPage({
     return () => {
       isMounted = false;
     };
-  }, [characterId]);
+  }, [timelineId]);
 
   // --- 2. Обробник надсилання форми ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -62,17 +60,12 @@ export default function EditCharacterPage({
 
     // Збір даних форми (всі поля повинні мати атрибут 'name')
     const data: ItemFormData = {
-      name:
-        (formData.get("name") as string) || characterData?.name || "Unnamed",
-      faction: formData.get("faction") as string,
-      role: formData.get("role") as string,
-      status: formData.get("status") as string,
+      name: (formData.get("name") as string) || timelineData?.name || "Unnamed",
       description: formData.get("description") as string,
-      motivations: formData.get("motivations") as string,
     };
 
     // Виклик API для оновлення (itemId != new-temp-id, тому відбувається оновлення)
-    await updateItem(characterId, data);
+    await updateItem(timelineId, data);
 
     // Оновлення та перенаправлення
     router.refresh();
@@ -83,7 +76,7 @@ export default function EditCharacterPage({
     // 💡 Використовуємо window.confirm для запобігання випадковому видаленню
     if (
       !window.confirm(
-        `Are you sure you want to delete ${characterData?.name}? This action cannot be undone.`
+        `Are you sure you want to delete ${timelineData?.name}? This action cannot be undone.`
       )
     ) {
       return;
@@ -92,7 +85,7 @@ export default function EditCharacterPage({
     setIsLoading(true); // Показуємо Loading під час видалення
 
     try {
-      await deleteItem(characterId);
+      await deleteItem(timelineId);
 
       // 🏆 УСПІХ: Після видалення перенаправляємо на сторінку світу
       router.refresh();
@@ -107,34 +100,28 @@ export default function EditCharacterPage({
   if (isLoading) {
     return (
       <PageContainer className="text-white text-center py-20">
-        Loading Character...
+        Loading Timeline...
       </PageContainer>
     );
   }
 
-  if (!characterData) {
+  if (!timelineData) {
     return (
       <PageContainer className="text-white text-center py-20">
-        Character Not Found!
+        Timeline Not Found!
       </PageContainer>
     );
   }
 
-  const currentCharacterName = characterData.name;
+  const currentCharacterName = timelineData.name;
 
   return (
     <PageContainer className="space-y-10">
       <header className="flex flex-col gap-3">
-        <p className="font-display text-xs text-purple-200">
-          CHARACTER PROFILE
-        </p>
+        <p className="font-display text-xs text-purple-200">TIMELINE PROFILE</p>
         <h1 className="text-3xl font-semibold text-white">
           Edit {currentCharacterName}
         </h1>
-        <p className="max-w-3xl text-sm text-white/70">
-          Flesh out relationships, factions, and story beats. Keep your players
-          guessing with layered secrets and notes.
-        </p>
       </header>
 
       <GlassPanel>
@@ -147,14 +134,14 @@ export default function EditCharacterPage({
               type="button"
               className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:border-white/40 hover:text-white"
             >
-              Upload Portrait
+              Upload Image
             </button>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <p className="font-display text-[11px] text-purple-100/80">
-                Character Notes
+                Timeline Notes
               </p>
               <p className="mt-2">
-                Pin maps, handouts, or secrets relevant to this character.
+                Pin maps, handouts, or secrets relevant to this timeline.
               </p>
               <button
                 type="button"
@@ -174,55 +161,10 @@ export default function EditCharacterPage({
                   Name
                 </label>
                 <Input
-                  defaultValue={characterData.name}
+                  defaultValue={timelineData.name}
                   className="mt-2"
                   name="name"
                 />
-              </div>
-              {/* Faction */}
-              <div>
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Faction
-                </label>
-                <Select
-                  defaultValue={characterData.faction || "skybound-covenant"}
-                  className="mt-2"
-                  name="faction"
-                >
-                  <option value="skybound-covenant">Skybound Covenant</option>
-                  <option value="tempest-choir">Tempest Choir</option>
-                  <option value="gilded-empire">Gilded Empire</option>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Role */}
-              <div>
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Role
-                </label>
-                <Input
-                  defaultValue={characterData.role || "Aetherwind Navigator"}
-                  className="mt-2"
-                  name="role"
-                />
-              </div>
-              {/* Status */}
-              <div>
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Status
-                </label>
-                <Select
-                  defaultValue={characterData.status || "active"}
-                  className="mt-2"
-                  name="status"
-                >
-                  <option value="active">Active</option>
-                  <option value="missing">Missing</option>
-                  <option value="deceased">Deceased</option>
-                  <option value="upcoming">Upcoming</option>
-                </Select>
               </div>
             </div>
 
@@ -232,21 +174,9 @@ export default function EditCharacterPage({
                 Description
               </label>
               <Textarea
-                defaultValue={characterData.description}
+                defaultValue={timelineData.description}
                 className="mt-2"
                 name="description"
-              />
-            </div>
-
-            {/* Motivations */}
-            <div>
-              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                Motivations
-              </label>
-              <Textarea
-                defaultValue={characterData.motivations}
-                className="mt-2 min-h-[120px]"
-                name="motivations"
               />
             </div>
 
@@ -260,7 +190,7 @@ export default function EditCharacterPage({
                 className="flex-1"
                 onClick={handleDelete}
               >
-                Delete Character
+                Delete Timeline
               </Button>
             </div>
           </form>

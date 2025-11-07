@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "continents";
+const ITEM_TYPE = "locations";
 
-export default function CreateContinentPage(/* params */) {
+export default function CreateLocationPage(/* params */) {
   const router = useRouter();
 
   // 1. БЕЗПЕЧНИЙ ДОСТУП: отримуємо параметри через хук
@@ -19,10 +19,10 @@ export default function CreateContinentPage(/* params */) {
   const worldId = params.worldId as string; // Оскільки useParams повертає string | string[]
 
   // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
-  const continentName = "New Continent";
+  const locationName = "New Location";
 
   // --- 1. Обробник надсилання форми ---
-  const handleSaveContinent = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveLocation = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
 
@@ -31,7 +31,7 @@ export default function CreateContinentPage(/* params */) {
 
     // Створення об'єкта даних (треба переконатися, що всі поля мають name="...")
     const data: ItemFormData = {
-      name: (formData.get("name") as string) || continentName,
+      name: (formData.get("name") as string) || locationName,
       faction: formData.get("faction") as string,
       location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
@@ -47,11 +47,9 @@ export default function CreateContinentPage(/* params */) {
   return (
     <PageContainer className="space-y-10">
       <header className="flex flex-col gap-3">
-        <p className="font-display text-xs text-purple-200">
-          CONTINENT PROFILE
-        </p>
+        <p className="font-display text-xs text-purple-200">LOCATION PROFILE</p>
         <h1 className="text-3xl font-semibold text-white">
-          Create {continentName}
+          Create {locationName}
         </h1>
       </header>
 
@@ -79,14 +77,14 @@ export default function CreateContinentPage(/* params */) {
             </div>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSaveContinent}>
+          <form className="space-y-6" onSubmit={handleSaveLocation}>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Name
                 </label>
                 <Input
-                  defaultValue={continentName}
+                  defaultValue={locationName}
                   className="mt-2"
                   name="name"
                 />
@@ -137,7 +135,7 @@ export default function CreateContinentPage(/* params */) {
 
             <div className="flex flex-col gap-4 pt-3 sm:flex-row">
               <Button type="submit" className="flex-1">
-                Create Continent
+                Create Location
               </Button>
               <Button type="button" variant="danger" className="flex-1">
                 Cancel

@@ -19,29 +19,29 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "continents";
+const ITEM_TYPE = "locations";
 
-export default function EditContinentPage({
+export default function EditLocationPage({
   params,
 }: {
-  params: { worldId: string; continentId: string }; // 👈 Змінено з questId на itemId
+  params: { worldId: string; locationId: string }; // 👈 Змінено з questId на itemId
 }) {
   const router = useRouter();
-  //const { worldId, continentId } = params;
+  //const { worldId, locationId } = params;
   const routeParams = useParams();
   const worldId = routeParams.worldId as string;
-  const continentId = routeParams.continentId as string;
+  const locationId = routeParams.locationId as string;
 
-  const [continentData, setContinentData] = useState<LocationItem | null>(null);
+  const [locationData, setLocationData] = useState<LocationItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 1. Асинхронне завантаження даних персонажа ---
   useEffect(() => {
     let isMounted = true;
 
-    getItemById(continentId).then((data: WorldItem | null) => {
+    getItemById(locationId).then((data: WorldItem | null) => {
       if (isMounted) {
-        setContinentData(data as LocationItem);
+        setLocationData(data as LocationItem);
         setIsLoading(false);
       }
     });
@@ -50,7 +50,7 @@ export default function EditContinentPage({
     return () => {
       isMounted = false;
     };
-  }, [continentId]);
+  }, [locationId]);
 
   // --- 2. Обробник надсилання форми ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,15 +60,14 @@ export default function EditContinentPage({
 
     // Збір даних форми (всі поля повинні мати атрибут 'name')
     const data: ItemFormData = {
-      name:
-        (formData.get("name") as string) || continentData?.name || "Unnamed",
+      name: (formData.get("name") as string) || locationData?.name || "Unnamed",
       faction: formData.get("faction") as string,
       location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
     };
 
     // Виклик API для оновлення (itemId != new-temp-id, тому відбувається оновлення)
-    await updateItem(continentId, data);
+    await updateItem(locationId, data);
 
     // Оновлення та перенаправлення
     router.refresh();
@@ -79,7 +78,7 @@ export default function EditContinentPage({
     // 💡 Використовуємо window.confirm для запобігання випадковому видаленню
     if (
       !window.confirm(
-        `Are you sure you want to delete ${continentData?.name}? This action cannot be undone.`
+        `Are you sure you want to delete ${locationData?.name}? This action cannot be undone.`
       )
     ) {
       return;
@@ -88,7 +87,7 @@ export default function EditContinentPage({
     setIsLoading(true); // Показуємо Loading під час видалення
 
     try {
-      await deleteItem(continentId);
+      await deleteItem(locationId);
 
       // 🏆 УСПІХ: Після видалення перенаправляємо на сторінку світу
       router.refresh();
@@ -108,7 +107,7 @@ export default function EditContinentPage({
     );
   }
 
-  if (!continentData) {
+  if (!locationData) {
     return (
       <PageContainer className="text-white text-center py-20">
         Continent Not Found!
@@ -116,7 +115,7 @@ export default function EditContinentPage({
     );
   }
 
-  const currentContinentName = continentData.name;
+  const currentContinentName = locationData.name;
 
   return (
     <PageContainer className="space-y-10">
@@ -161,7 +160,7 @@ export default function EditContinentPage({
                   Name
                 </label>
                 <Input
-                  defaultValue={continentData.name}
+                  defaultValue={locationData.name}
                   className="mt-2"
                   name="name"
                 />
@@ -172,7 +171,7 @@ export default function EditContinentPage({
                   Faction
                 </label>
                 <Select
-                  defaultValue={continentData.faction || "skybound-covenant"}
+                  defaultValue={locationData.faction || "skybound-covenant"}
                   className="mt-2"
                   name="faction"
                 >
@@ -190,7 +189,7 @@ export default function EditContinentPage({
                   Type
                 </label>
                 <Select
-                  defaultValue={continentData.status || "active"}
+                  defaultValue={locationData.location_type || "active"}
                   className="mt-2"
                   name="location_type"
                 >
@@ -208,7 +207,7 @@ export default function EditContinentPage({
                 Description
               </label>
               <Textarea
-                defaultValue={continentData.description}
+                defaultValue={locationData.description}
                 className="mt-2"
                 name="description"
               />
@@ -224,7 +223,7 @@ export default function EditContinentPage({
                 className="flex-1"
                 onClick={handleDelete}
               >
-                Delete Continent
+                Delete Location
               </Button>
             </div>
           </form>

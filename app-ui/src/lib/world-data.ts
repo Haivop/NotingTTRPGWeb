@@ -71,6 +71,12 @@ export interface ArtifactItem extends WorldItem {
 
 // 6. Інтерфейс для Події (Event)
 // На основі макета Event (image_def682.png)
+export interface TimelineItem extends WorldItem {
+  description: string;
+}
+
+// 6. Інтерфейс для Події (Event)
+// На основі макета Event (image_def682.png)
 export interface EventItem extends WorldItem {
   // name, detail, type успадковано
   timeline_group: string; // "Timeline Group" у макеті
