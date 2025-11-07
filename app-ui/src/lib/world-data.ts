@@ -6,6 +6,14 @@ import {
   INITIAL_WORLD_METADATA,
 } from "./mock.data";
 
+import { CURRENT_USER_KEY } from "./auth-api";
+
+// Використовуємо функцію, яка читає ID, що зберігається в LS
+export function getCurrentUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(CURRENT_USER_KEY);
+}
+
 // --- Функції Local Storage ---
 
 /**
@@ -225,18 +233,22 @@ function saveWorldMetadata(metadata: WorldEntity[]) {
 export async function createNewWorld(
   data: Partial<WorldEntity>
 ): Promise<string> {
-  await simulateDelay(200);
+  await simulateDelay(200); // 🏆 1. ОТРИМАННЯ ID ПОТОЧНОГО КОРИСТУВАЧА З LOCAL STORAGE
+
+  const currentUserId = getCurrentUserId() || "guest-000";
+  // Якщо ID немає (гість), використовуємо дефолтний ID.
 
   const allWorlds = initializeAndLoadWorldMetadata();
   const newWorldId =
-    data.name.toLowerCase().replace(/ /g, "-") + "-" + Date.now(); // Генеруємо унікальний slug ID
+    data.name.toLowerCase().replace(/ /g, "-") + "-" + Date.now();
 
   const newWorld: WorldEntity = {
     id: newWorldId,
     name: data.name || "Unnamed Realm",
     description: data.description || "No description provided.",
 
-    // Встановлюємо дефолтні значення для обов'язкових полів
+    authorId: currentUserId, // 👈 🏆 ЗБЕРІГАЄМО ID АВТОРА // Встановлюємо дефолтні значення для обов'язкових полів
+
     contributors: data.contributors || "",
     type: data.type || "Fantasy",
     era: data.era || "Unknown",
@@ -248,10 +260,9 @@ export async function createNewWorld(
   allWorlds.push(newWorld);
   saveWorldMetadata(allWorlds);
 
-  console.log(`[LS API] New World created: ${newWorldId}`);
+  console.log(`[LS API] New World created by ${currentUserId}: ${newWorldId}`);
   return newWorldId;
 }
-
 export async function updateWorldMetadata(
   worldId: string,
   data: Partial<WorldEntity>

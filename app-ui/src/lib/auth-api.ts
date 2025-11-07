@@ -4,7 +4,7 @@ import { UserEntity } from "./types"; // 👈 Припускаємо, що UserE
 
 // --- КОНСТАНТИ ТА ДАНІ ---
 const AUTH_STATUS_KEY = "APP_AUTH_STATUS";
-const CURRENT_USER_KEY = "CURRENT_USER_ID";
+export const CURRENT_USER_KEY = "CURRENT_USER_ID";
 
 export type AuthStatus = "loading" | "guest" | "user";
 
