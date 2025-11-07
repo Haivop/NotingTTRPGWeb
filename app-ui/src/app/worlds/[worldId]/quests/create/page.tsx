@@ -1,180 +1,143 @@
+"use client";
+import { useRouter, useParams } from "next/navigation";
+import { saveNewItem, ItemFormData } from "@/lib/world-data";
+
 import { PageContainer } from "@/components/layout/PageContainer";
-import { TwoColumnLayout } from "@/components/layout/TwoColumnLayout";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { ItemGridSection } from "@/components/layout/ItemGridSection";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
 
-import { getItemsByType, WorldItem } from "@/lib/world-data";
+const ITEM_TYPE = "quests";
 
-const sidebarSections = [
-  "Maps",
-  "Continents",
-  "Regions",
-  "Locations",
-  "Factions",
-  "Characters",
-  "Quests",
-  "Artifacts",
-  "Timelines",
-];
+export default function CreateQuestsPage(/* params */) {
+  const router = useRouter();
 
-export default async function WorldOverviewPage({
-  params,
-}: {
-  params: { worldId: string };
-}) {
-  const worldName = params.worldId
-    ? params.worldId
-        .split("-")
-        .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
-        .join(" ")
-    : "Unnamed Realm";
+  // 1. БЕЗПЕЧНИЙ ДОСТУП: отримуємо параметри через хук
+  const params = useParams();
+  const worldId = params.worldId as string; // Оскільки useParams повертає string | string[]
 
-  const worldId = params.worldId;
+  // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
+  const questName = "New Quest";
 
-  const [
-    continents,
-    regions,
-    locations,
-    factions,
-    artifacts,
-    timelines,
-    quests,
-    characters,
-  ] = await Promise.all([
-    getItemsByType(worldId, "continents"),
-    getItemsByType(worldId, "regions"),
-    getItemsByType(worldId, "locations"),
-    getItemsByType(worldId, "factions"),
-    getItemsByType(worldId, "artifacts"),
-    getItemsByType(worldId, "timelines"),
-    getItemsByType(worldId, "quests"),
-    getItemsByType(worldId, "characters"),
-  ]);
+  // --- 1. Обробник надсилання форми ---
+  const handleSaveQuest = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
 
+    // 2. Збираємо дані форми (це також вимагає, щоб ви додали атрибут 'name' до всіх Input/Select/Textarea)
+    const formData = new FormData(form);
+
+    // Створення об'єкта даних (треба переконатися, що всі поля мають name="...")
+    const data: ItemFormData = {
+      name: (formData.get("name") as string) || questName,
+      status: formData.get("status") as string,
+      reward: formData.get("reward") as string,
+      objective: formData.get("objective") as string,
+      description: formData.get("description") as string,
+    };
+
+    // 3. Викликаємо API для збереження/створення
+    const finalId = await saveNewItem(worldId, ITEM_TYPE, data);
+    router.refresh();
+    // 4. ПЕРЕНАПРАВЛЕННЯ: на сторінку редагування зі справжнім ID
+    const newUrl = `/worlds/${worldId}`;
+    router.push(newUrl);
+  };
   return (
-    <div className="space-y-10">
-      <PageContainer>
-        <header className="flex flex-col gap-3">
-          <p className="font-display text-l text-purple-200/80">
-            WORLD OVERVIEW
-          </p>
-          <h1 className="text-3xl font-semibold text-white">{worldName}</h1>
-          <p className="max-w-3xl text-sm text-white/70">
-            Suspended between the heavens and the abyss, the realm hums with
-            skyward ley lines, song-bound storms, and guilds vying for dominion
-            over floating citadels.
-          </p>
-        </header>
-      </PageContainer>
+    <PageContainer className="space-y-10">
+      <header className="flex flex-col gap-3">
+        <p className="font-display text-xs text-purple-200">QUEST PROFILE</p>
+        <h1 className="text-3xl font-semibold text-white">
+          Create {questName}
+        </h1>
+      </header>
 
-      <TwoColumnLayout
-        sidebar={
-          <div className="space-y-6">
-            <Input placeholder="Search the codex..." />
-            <nav className="space-y-2 text-sm text-white/65">
-              {sidebarSections.map((section) => (
-                <a
-                  key={section}
-                  href={`#${section.toLowerCase()}`}
-                  className="flex items-center justify-between rounded-2xl px-3 py-2 transition hover:bg-white/5 hover:text-white"
-                >
-                  <span>{section}</span>
-                  <span className="text-xs text-white/30">12</span>
-                </a>
-              ))}
-            </nav>
-
-            <div className="rounded-3xl border border-purple-300/30 bg-purple-500/10 p-5 text-xs text-purple-100">
-              <p className="font-display text-[11px] uppercase tracking-[0.3em]">
-                Co-Authors
+      <GlassPanel>
+        <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div className="flex flex-col gap-4">
+            <div className="h-64 rounded-3xl border border-white/15 bg-[radial-gradient(circle_at_50%_0%,rgba(192,132,252,0.45),transparent_60%),radial-gradient(circle_at_50%_100%,rgba(244,114,182,0.3),transparent_65%)]" />
+            <button
+              type="button"
+              className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:border-white/40 hover:text-white"
+            >
+              Upload Image
+            </button>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
+              <p className="font-display text-[11px] text-purple-100/80">
+                Gallery
               </p>
-              <ul className="mt-3 space-y-2 text-white/70">
-                <li>@sable.stargazer</li>
-                <li>@quinn.cartographer</li>
-                <li>@leyline.mage</li>
-              </ul>
+              <p className="mt-2">Add supporting artwork, sigils.</p>
+              <button
+                type="button"
+                className="mt-3 rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/55 transition hover:border-white/40 hover:text-white"
+              >
+                + Add Image
+              </button>
             </div>
           </div>
-        }
-      >
-        <GlassPanel id="maps" title="SKYMAP">
-          <div className="rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_60%_20%,rgba(192,132,252,0.35),transparent_55%),radial-gradient(circle_at_20%_80%,rgba(244,114,182,0.25),transparent_60%)] p-10">
-            <div className="h-72 rounded-3xl border border-white/15 bg-black/30" />
-            <p className="mt-4 text-xs uppercase tracking-[0.28em] text-white/45">
-              Drag to pan • Scroll to zoom • Double-click for region detail
-            </p>
-          </div>
-        </GlassPanel>
-        {/* CONTINENTS: Використовуємо ItemGridSection (замість GlassPanel) */}
-        <ItemGridSection
-          id="continents"
-          title="CONTINENTS"
-          data={continents}
-          addNewText="+ New Continent"
-          //worldId={worldId}
-        />
 
-        {/* CHARACTERS: Використовуємо ItemGridSection (замість GlassPanel) */}
-        <ItemGridSection
-          id="characters"
-          title="CHARACTERS"
-          data={characters}
-          addNewText="+ New Character"
-          //worldId={worldId}
-        />
+          <form className="space-y-6" onSubmit={handleSaveQuest}>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                  Name
+                </label>
+                <Input defaultValue={questName} className="mt-2" name="name" />
+              </div>
 
-        {/* QUESTS: Використовуємо ItemGridSection (замість GlassPanel) */}
-        <ItemGridSection
-          id="quests"
-          title="QUEST THREADS"
-          data={quests}
-          addNewText="+ New Quest"
-          //worldId={worldId}
-        />
+              <div>
+                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                  Status
+                </label>
+                <Select defaultValue="active" className="mt-2" name="status">
+                  <option value="Not started">Not started</option>
+                  <option value="Started">Started</option>
+                  <option value="In process">In process</option>
+                  <option value="Paused">Paused</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Faild">Faild</option>
+                </Select>
+              </div>
+            </div>
 
-        {/* 2. ДОДАЄМО ВСІ ІНШІ СЕКЦІЇ (ItemGridSection) */}
+            <div>
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Reward
+              </label>
+              <Input defaultValue="0" className="mt-2" name="reward" />
+            </div>
 
-        <ItemGridSection
-          id="regions"
-          title="REGIONS"
-          data={regions}
-          addNewText="+ New Region"
-          //worldId={worldId}
-        />
+            <div>
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Objective
+              </label>
+              <Input defaultValue="-" className="mt-2" name="objective" />
+            </div>
 
-        <ItemGridSection
-          id="locations"
-          title="LOCATIONS"
-          data={locations}
-          addNewText="+ New Location"
-          //worldId={worldId}
-        />
+            <div>
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
+                Description
+              </label>
+              <Textarea
+                defaultValue="Elowyn tracks star currents with a living astrolabe. She hides a pact with the Tempest Choir to keep her crew safe."
+                className="mt-2"
+                name="description"
+              />
+            </div>
 
-        <ItemGridSection
-          id="factions"
-          title="FACTIONS"
-          data={factions}
-          addNewText="+ New Faction"
-          //worldId={worldId}
-        />
-
-        <ItemGridSection
-          id="artifacts"
-          title="ARTIFACTS"
-          data={artifacts}
-          addNewText="+ New Artifact"
-          //worldId={worldId}
-        />
-
-        <ItemGridSection
-          id="timelines"
-          title="TIMELINES"
-          data={timelines}
-          addNewText="+ New Timeline"
-          //worldId={worldId}
-        />
-      </TwoColumnLayout>
-    </div>
+            <div className="flex flex-col gap-4 pt-3 sm:flex-row">
+              <Button type="submit" className="flex-1">
+                Create Quest
+              </Button>
+              <Button type="button" variant="danger" className="flex-1">
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
+      </GlassPanel>
+    </PageContainer>
   );
 }

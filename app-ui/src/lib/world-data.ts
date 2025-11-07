@@ -21,6 +21,20 @@ export interface CharacterItem extends WorldItem {
   // status - успадковано, але тут обов'язкові поля Character
 }
 
+export interface ContinentItem extends WorldItem {
+  // name, detail, type успадковано
+  faction?: string; // Можливість прив'язати локацію до фракції
+  location_type: string; // "Type" у макеті
+  description: string;
+}
+
+export interface RegionItem extends WorldItem {
+  // name, detail, type успадковано
+  faction?: string; // Можливість прив'язати локацію до фракції
+  location_type: string; // "Type" у макеті
+  description: string;
+}
+
 // 2. Інтерфейс для Локації (Location)
 // На основі макета Location (image_deec3a.png)
 export interface LocationItem extends WorldItem {

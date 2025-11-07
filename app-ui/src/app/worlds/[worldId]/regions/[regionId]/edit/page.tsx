@@ -9,7 +9,7 @@ import {
   updateItem,
   ItemFormData,
   WorldItem,
-  CharacterItem,
+  RegionItem,
 } from "@/lib/world-data"; // Функції API
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -19,31 +19,31 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "characters";
+const ITEM_TYPE = "regions";
 
-export default function EditCharacterPage({
+export default function EditRegionPage({
   params,
 }: {
-  params: { worldId: string; characterId: string }; // 👈 Змінено з questId на itemId
+  params: { worldId: string; regionId: string }; // 👈 Змінено з questId на itemId
 }) {
   const router = useRouter();
-  //const { worldId, characterId } = params;
+  //const { worldId, regionId } = params;
   const routeParams = useParams();
   const worldId = routeParams.worldId as string;
-  const characterId = routeParams.characterId as string;
+  const regionId = routeParams.regionId as string;
 
-  const [characterData, setCharacterData] = useState<CharacterItem | null>(
-    null
-  );
+  console.log(`ID: ${regionId}`);
+
+  const [regionData, setRegionData] = useState<RegionItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 1. Асинхронне завантаження даних персонажа ---
   useEffect(() => {
     let isMounted = true;
 
-    getItemById(characterId).then((data: WorldItem | null) => {
+    getItemById(regionId).then((data: WorldItem | null) => {
       if (isMounted) {
-        setCharacterData(data as CharacterItem);
+        setRegionData(data as RegionItem);
         setIsLoading(false);
       }
     });
@@ -52,7 +52,7 @@ export default function EditCharacterPage({
     return () => {
       isMounted = false;
     };
-  }, [characterId]);
+  }, [regionId]);
 
   // --- 2. Обробник надсилання форми ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -62,17 +62,14 @@ export default function EditCharacterPage({
 
     // Збір даних форми (всі поля повинні мати атрибут 'name')
     const data: ItemFormData = {
-      name:
-        (formData.get("name") as string) || characterData?.name || "Unnamed",
+      name: (formData.get("name") as string) || regionData?.name || "Unnamed",
       faction: formData.get("faction") as string,
-      role: formData.get("role") as string,
-      status: formData.get("status") as string,
+      location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
-      motivations: formData.get("motivations") as string,
     };
 
     // Виклик API для оновлення (itemId != new-temp-id, тому відбувається оновлення)
-    await updateItem(characterId, data);
+    await updateItem(regionId, data);
 
     // Оновлення та перенаправлення
     router.refresh();
@@ -83,7 +80,7 @@ export default function EditCharacterPage({
     // 💡 Використовуємо window.confirm для запобігання випадковому видаленню
     if (
       !window.confirm(
-        `Are you sure you want to delete ${characterData?.name}? This action cannot be undone.`
+        `Are you sure you want to delete ${regionData?.name}? This action cannot be undone.`
       )
     ) {
       return;
@@ -92,70 +89,60 @@ export default function EditCharacterPage({
     setIsLoading(true); // Показуємо Loading під час видалення
 
     try {
-      await deleteItem(characterId);
+      await deleteItem(regionId);
 
       // 🏆 УСПІХ: Після видалення перенаправляємо на сторінку світу
       router.refresh();
       router.push(`/worlds/${worldId}`);
     } catch (error) {
-      console.error("Error deleting character:", error);
+      console.error("Error deleting continent:", error);
       setIsLoading(false); // Залишаємося на сторінці і показуємо помилку
-      alert("Failed to delete character.");
+      alert("Failed to delete continent.");
     }
   };
 
   if (isLoading) {
     return (
       <PageContainer className="text-white text-center py-20">
-        Loading Character...
+        Loading Region...
       </PageContainer>
     );
   }
 
-  if (!characterData) {
+  if (!regionData) {
     return (
       <PageContainer className="text-white text-center py-20">
-        Character Not Found!
+        Region Not Found!
       </PageContainer>
     );
   }
 
-  const currentCharacterName = characterData.name;
+  const currentContinentName = regionData.name;
 
   return (
     <PageContainer className="space-y-10">
       <header className="flex flex-col gap-3">
-        <p className="font-display text-xs text-purple-200">
-          CHARACTER PROFILE
-        </p>
+        <p className="font-display text-xs text-purple-200">REGION PROFILE</p>
         <h1 className="text-3xl font-semibold text-white">
-          Edit {currentCharacterName}
+          Edit {currentContinentName}
         </h1>
-        <p className="max-w-3xl text-sm text-white/70">
-          Flesh out relationships, factions, and story beats. Keep your players
-          guessing with layered secrets and notes.
-        </p>
       </header>
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* ... (Зображення, Галерея) ... */}
           <div className="flex flex-col gap-4">
-            {/* Замість Quest Art використовуємо Character Art */}
             <div className="h-64 rounded-3xl border border-white/15 bg-[radial-gradient(circle_at_50%_0%,rgba(192,132,252,0.45),transparent_60%),radial-gradient(circle_at_50%_100%,rgba(244,114,182,0.3),transparent_65%)]" />
             <button
               type="button"
               className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:border-white/40 hover:text-white"
             >
-              Upload Portrait
+              Upload Image
             </button>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <p className="font-display text-[11px] text-purple-100/80">
-                Character Notes
+                Region Notes
               </p>
-              <p className="mt-2">
-                Pin maps, handouts, or secrets relevant to this character.
-              </p>
+              <p className="mt-2">Pin maps.</p>
               <button
                 type="button"
                 className="mt-3 rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/55 transition hover:border-white/40 hover:text-white"
@@ -166,7 +153,6 @@ export default function EditCharacterPage({
           </div>
 
           <form className="space-y-6" onSubmit={handleSaveProfile}>
-            {/* --- ПОЛЯ ПЕРСОНАЖА --- */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Name */}
               <div>
@@ -174,7 +160,7 @@ export default function EditCharacterPage({
                   Name
                 </label>
                 <Input
-                  defaultValue={characterData.name}
+                  defaultValue={regionData.name}
                   className="mt-2"
                   name="name"
                 />
@@ -185,7 +171,7 @@ export default function EditCharacterPage({
                   Faction
                 </label>
                 <Select
-                  defaultValue={characterData.faction || "skybound-covenant"}
+                  defaultValue={regionData.faction || "skybound-covenant"}
                   className="mt-2"
                   name="faction"
                 >
@@ -197,26 +183,15 @@ export default function EditCharacterPage({
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Role */}
+              {/* Location_type */}
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Role
-                </label>
-                <Input
-                  defaultValue={characterData.role || "Aetherwind Navigator"}
-                  className="mt-2"
-                  name="role"
-                />
-              </div>
-              {/* Status */}
-              <div>
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Status
+                  Type
                 </label>
                 <Select
-                  defaultValue={characterData.status || "active"}
+                  defaultValue={regionData.location_type || "active"}
                   className="mt-2"
-                  name="status"
+                  name="location_type"
                 >
                   <option value="active">Active</option>
                   <option value="missing">Missing</option>
@@ -232,21 +207,9 @@ export default function EditCharacterPage({
                 Description
               </label>
               <Textarea
-                defaultValue={characterData.description}
+                defaultValue={regionData.description}
                 className="mt-2"
                 name="description"
-              />
-            </div>
-
-            {/* Motivations */}
-            <div>
-              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                Motivations
-              </label>
-              <Textarea
-                defaultValue={characterData.motivations}
-                className="mt-2 min-h-[120px]"
-                name="motivations"
               />
             </div>
 
@@ -260,7 +223,7 @@ export default function EditCharacterPage({
                 className="flex-1"
                 onClick={handleDelete}
               >
-                Delete Character
+                Delete Region
               </Button>
             </div>
           </form>

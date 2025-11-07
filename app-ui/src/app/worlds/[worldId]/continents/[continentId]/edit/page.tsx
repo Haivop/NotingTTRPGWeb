@@ -9,7 +9,7 @@ import {
   updateItem,
   ItemFormData,
   WorldItem,
-  LocationItem,
+  ContinentItem,
 } from "@/lib/world-data"; // Функції API
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -32,7 +32,9 @@ export default function EditContinentPage({
   const worldId = routeParams.worldId as string;
   const continentId = routeParams.continentId as string;
 
-  const [continentData, setContinentData] = useState<LocationItem | null>(null);
+  const [continentData, setContinentData] = useState<ContinentItem | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   // --- 1. Асинхронне завантаження даних персонажа ---
@@ -41,7 +43,7 @@ export default function EditContinentPage({
 
     getItemById(continentId).then((data: WorldItem | null) => {
       if (isMounted) {
-        setContinentData(data as LocationItem);
+        setContinentData(data as ContinentItem);
         setIsLoading(false);
       }
     });

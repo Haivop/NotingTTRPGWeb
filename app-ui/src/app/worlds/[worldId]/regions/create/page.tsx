@@ -9,10 +9,9 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const TEMP_CREATE_ID = "new-temp-id";
-const ITEM_TYPE = "characters";
+const ITEM_TYPE = "regions";
 
-export default function CreateCharacterPage(/* params */) {
+export default function CreateRegionPage(/* params */) {
   const router = useRouter();
 
   // 1. БЕЗПЕЧНИЙ ДОСТУП: отримуємо параметри через хук
@@ -20,11 +19,10 @@ export default function CreateCharacterPage(/* params */) {
   const worldId = params.worldId as string; // Оскільки useParams повертає string | string[]
 
   // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
-  const characterName = "New Character";
+  const regionName = "New Region";
 
   // --- 1. Обробник надсилання форми ---
-  const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("Click");
+  const handleSaveRegion = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
 
@@ -33,12 +31,10 @@ export default function CreateCharacterPage(/* params */) {
 
     // Створення об'єкта даних (треба переконатися, що всі поля мають name="...")
     const data: ItemFormData = {
-      name: (formData.get("name") as string) || characterName,
+      name: (formData.get("name") as string) || regionName,
       faction: formData.get("faction") as string,
-      role: formData.get("role") as string,
-      status: formData.get("status") as string,
+      location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
-      motivations: formData.get("motivations") as string,
     };
 
     // 3. Викликаємо API для збереження/створення
@@ -51,16 +47,10 @@ export default function CreateCharacterPage(/* params */) {
   return (
     <PageContainer className="space-y-10">
       <header className="flex flex-col gap-3">
-        <p className="font-display text-xs text-purple-200">
-          CHARACTER PROFILE
-        </p>
+        <p className="font-display text-xs text-purple-200">REGION PROFILE</p>
         <h1 className="text-3xl font-semibold text-white">
-          Create {characterName}
+          Create {regionName}
         </h1>
-        <p className="max-w-3xl text-sm text-white/70">
-          Flesh out relationships, factions, and story beats. Keep your players
-          guessing with layered secrets and notes.
-        </p>
       </header>
 
       <GlassPanel>
@@ -71,15 +61,13 @@ export default function CreateCharacterPage(/* params */) {
               type="button"
               className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:border-white/40 hover:text-white"
             >
-              Upload Portrait
+              Upload Image
             </button>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <p className="font-display text-[11px] text-purple-100/80">
                 Gallery
               </p>
-              <p className="mt-2">
-                Add supporting artwork, sigils, reference poses, or mood boards.
-              </p>
+              <p className="mt-2">Add supporting artwork.</p>
               <button
                 type="button"
                 className="mt-3 rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/55 transition hover:border-white/40 hover:text-white"
@@ -89,18 +77,17 @@ export default function CreateCharacterPage(/* params */) {
             </div>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSaveProfile}>
+          <form className="space-y-6" onSubmit={handleSaveRegion}>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Name
                 </label>
-                <Input
-                  defaultValue={characterName}
-                  className="mt-2"
-                  name="name"
-                />
+                <Input defaultValue={regionName} className="mt-2" name="name" />
               </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Faction
@@ -115,24 +102,15 @@ export default function CreateCharacterPage(/* params */) {
                   <option value="gilded-empire">Gilded Empire</option>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Role
+                  Type
                 </label>
-                <Input
-                  defaultValue="Aetherwind Navigator"
+                <Select
+                  defaultValue="active"
                   className="mt-2"
-                  name="role"
-                />
-              </div>
-              <div>
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Status
-                </label>
-                <Select defaultValue="active" className="mt-2" name="status">
+                  name="location_type"
+                >
                   <option value="active">Active</option>
                   <option value="missing">Missing</option>
                   <option value="deceased">Deceased</option>
@@ -151,20 +129,9 @@ export default function CreateCharacterPage(/* params */) {
               />
             </div>
 
-            <div>
-              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                Motivations
-              </label>
-              <Textarea
-                defaultValue="Secure a sanctuary for sky refugees. Unravel the truth behind the First Gale."
-                className="mt-2 min-h-[120px]"
-                name="motivations"
-              />
-            </div>
-
             <div className="flex flex-col gap-4 pt-3 sm:flex-row">
               <Button type="submit" className="flex-1">
-                Create Character
+                Create Region
               </Button>
               <Button type="button" variant="danger" className="flex-1">
                 Cancel
