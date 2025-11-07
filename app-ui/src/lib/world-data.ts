@@ -1,6 +1,7 @@
 // --- БАЗОВИЙ УНІВЕРСАЛЬНИЙ ІНТЕРФЕЙС ---
 export interface WorldItem {
   id: string;
+  worldId: string;
   name: string;
   type: string; // 'characters', 'quests', 'continents', 'locations', 'factions', etc.
   detail?: string;
@@ -113,6 +114,47 @@ export interface ItemFormData {
   hook?: string;
 }
 
+export interface WorldEntity {
+  id: string;
+  name: string;
+  description: string;
+  contributors: string;
+  type: string;
+  era: string;
+  themes: string;
+  starting_region: string;
+  visibility: boolean;
+}
+
+const WORLD_METADATA_KEY = "WORLDS_METADATA_V1";
+
+const INITIAL_WORLD_METADATA: WorldEntity[] = [
+  {
+    id: "elarian-skies",
+    name: "Elarian Skies",
+    description:
+      "Suspended between the heavens and the abyss. A realm of floating citadels and sentient storms.",
+    contributors: "Lady Elowyn, Arcanist Veyl",
+    type: "High Fantasy",
+    era: "The Age of Ascension",
+    themes: "Sky piracy, Ancient pacts, Elemental conflict",
+    starting_region: "Aetherwind Bay",
+    visibility: true, // Публічний світ
+  },
+  {
+    id: "verdant-hollow",
+    name: "Verdant Hollow",
+    description:
+      "Bioluminescent forests rooted in ancient leviathans. A world hidden from the sky.",
+    contributors: "Quinn Cartographer",
+    type: "Dark Fantasy",
+    era: "The Whispering Age",
+    themes: "Bioluminescence, Ancient technology, Isolation",
+    starting_region: "The Sunken Root",
+    visibility: false, // Приватний світ
+  },
+];
+
 const STORAGE_KEY = "WORLD_DATA_V1";
 
 const INITIAL_MOCKED_DATA: WorldItem[] = [
@@ -141,12 +183,14 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Continents
   {
     id: "cont-1",
+    worldId: "elarian-skies",
     name: "Sapphirine Isles",
     detail: "Floating archipelago",
     type: "continents",
   },
   {
     id: "cont-2",
+    worldId: "elarian-skies",
     name: "Verdant Hollow",
     detail: "Bioluminescent forests",
     type: "continents",
@@ -155,6 +199,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Quests (використовує універсальні поля status та hook)
   {
     id: "quest-1",
+    worldId: "elarian-skies",
     name: "The Tempest Choir",
     status: "In Motion", // ✅ Дозволено WorldItem
     hook: "Negotiate peace", // ✅ Дозволено WorldItem
@@ -162,6 +207,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   },
   {
     id: "quest-2",
+    worldId: "elarian-skies",
     name: "Shards of the Primordial",
     status: "Rumored",
     hook: "Gather relics",
@@ -171,6 +217,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Regions
   {
     id: "reg-1",
+    worldId: "elarian-skies",
     name: "Shattered Peaks",
     detail: "Home to nomadic sky tribes",
     type: "regions",
@@ -179,6 +226,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Locations
   {
     id: "loc-1",
+    worldId: "elarian-skies",
     name: "Obsidian Spire",
     detail: "Ancient tower",
     type: "locations",
@@ -187,6 +235,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Factions
   {
     id: "fact-1",
+    worldId: "elarian-skies",
     name: "Aetherwind Traders",
     detail: "Mercantile guild",
     type: "factions",
@@ -195,6 +244,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Artifacts
   {
     id: "art-1",
+    worldId: "elarian-skies",
     name: "Compass of the Void",
     detail: "Celestial tear locator",
     type: "artifacts",
@@ -203,6 +253,7 @@ const INITIAL_MOCKED_DATA: WorldItem[] = [
   // Timelines
   {
     id: "time-1",
+    worldId: "elarian-skies",
     name: "Era of Drakes",
     detail: "Draconic dominance",
     type: "timelines",
@@ -253,17 +304,21 @@ const simulateDelay = (ms = 50) =>
  * Універсальна функція для отримання елементів певного типу.
  */
 export async function getItemsByType(
-  worldId: string,
+  worldId: string, // ✅ Цей аргумент тепер використовується
   type: string
 ): Promise<WorldItem[]> {
   await simulateDelay();
 
-  // Завантажуємо всі дані з LS і фільтруємо
   const allData = initializeAndLoadData();
 
-  const items = allData.filter((item) => item.type === type);
+  // 🏆 ФІЛЬТРАЦІЯ ЗА ДВОМА УМОВАМИ
+  const items = allData.filter(
+    (item) => item.type === type && item.worldId === worldId
+  );
 
-  console.log(`[LS API] Fetched ${items.length} items of type: ${type}`);
+  console.log(
+    `[LS API] Fetched ${items.length} items for World: ${worldId}, Type: ${type}`
+  );
   return items;
 }
 
@@ -309,6 +364,7 @@ export async function saveNewItem(
     name: data.name || "Unnamed Item",
     type: type, // Забезпечуємо наявність типу
     id: finalId, // Додаємо ID для унікальності
+    worldId: worldId,
   } as WorldItem; // Встановлюємо тип
 
   allData.push(newItem);
@@ -375,4 +431,120 @@ export async function deleteItem(itemId: string): Promise<boolean> {
 
   console.log(`[LS API] Item ID ${itemId} successfully deleted.`);
   return true;
+}
+
+function initializeAndLoadWorldMetadata(): WorldEntity[] {
+  if (typeof window === "undefined") return INITIAL_WORLD_METADATA;
+
+  let data;
+  try {
+    const serialized = localStorage.getItem(WORLD_METADATA_KEY);
+    data = serialized ? JSON.parse(serialized) : [];
+  } catch (e) {
+    console.error("Error loading world metadata:", e);
+  }
+
+  if (!data || data.length === 0) {
+    localStorage.setItem(
+      WORLD_METADATA_KEY,
+      JSON.stringify(INITIAL_WORLD_METADATA)
+    );
+    return INITIAL_WORLD_METADATA;
+  }
+  return data;
+}
+
+export async function getWorldById(
+  worldId: string
+): Promise<WorldEntity | null> {
+  await simulateDelay();
+  const metadata = initializeAndLoadWorldMetadata();
+  return metadata.find((world) => world.id === worldId) || null;
+}
+
+export async function getAllWorlds(): Promise<WorldEntity[]> {
+  await simulateDelay(50);
+  return initializeAndLoadWorldMetadata();
+}
+
+function saveWorldMetadata(metadata: WorldEntity[]) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(WORLD_METADATA_KEY, JSON.stringify(metadata));
+  }
+}
+
+/**
+ * Створює новий світ та зберігає його метадані.
+ */
+export async function createNewWorld(
+  data: Partial<WorldEntity>
+): Promise<string> {
+  await simulateDelay(200);
+
+  const allWorlds = initializeAndLoadWorldMetadata();
+  const newWorldId =
+    data.name.toLowerCase().replace(/ /g, "-") + "-" + Date.now(); // Генеруємо унікальний slug ID
+
+  const newWorld: WorldEntity = {
+    id: newWorldId,
+    name: data.name || "Unnamed Realm",
+    description: data.description || "No description provided.",
+
+    // Встановлюємо дефолтні значення для обов'язкових полів
+    contributors: data.contributors || "",
+    type: data.type || "Fantasy",
+    era: data.era || "Unknown",
+    themes: data.themes || "",
+    starting_region: data.starting_region || "",
+    visibility: data.visibility || false,
+  };
+
+  allWorlds.push(newWorld);
+  saveWorldMetadata(allWorlds);
+
+  console.log(`[LS API] New World created: ${newWorldId}`);
+  return newWorldId;
+}
+
+export async function updateWorldMetadata(
+  worldId: string,
+  data: Partial<WorldEntity>
+): Promise<void> {
+  await simulateDelay(200);
+
+  const allWorlds = initializeAndLoadWorldMetadata();
+  const index = allWorlds.findIndex((world) => world.id === worldId);
+
+  if (index === -1) {
+    console.error(`[LS API] World ID ${worldId} not found for update.`);
+    return;
+  }
+
+  // Оновлюємо елемент
+  allWorlds[index] = {
+    ...allWorlds[index],
+    ...data,
+    id: worldId, // Забезпечуємо збереження ID
+    name: data.name || allWorlds[index].name,
+  } as WorldEntity;
+
+  saveWorldMetadata(allWorlds);
+  console.log(`[LS API] World ${worldId} metadata updated.`);
+}
+
+export async function deleteWorld(worldId: string): Promise<void> {
+  await simulateDelay(200);
+
+  let allWorlds = initializeAndLoadWorldMetadata();
+  const initialLength = allWorlds.length;
+
+  // Фільтруємо світи, залишаючи всі, крім того, що видаляється
+  allWorlds = allWorlds.filter((world) => world.id !== worldId);
+
+  if (allWorlds.length === initialLength) {
+    console.warn(`[LS API] World ID ${worldId} not found for deletion.`);
+  } else {
+    saveWorldMetadata(allWorlds);
+    console.log(`[LS API] World ${worldId} deleted successfully.`);
+  }
 }
