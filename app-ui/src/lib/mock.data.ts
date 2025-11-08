@@ -6,6 +6,7 @@ export const STORAGE_KEY = "WORLD_DATA_V1";
 export const INITIAL_WORLD_METADATA: WorldEntity[] = [
   {
     id: "elarian-skies",
+    authorId: "user-0001",
     name: "Elarian Skies",
     description:
       "Suspended between the heavens and the abyss. A realm of floating citadels and sentient storms.",
@@ -18,6 +19,7 @@ export const INITIAL_WORLD_METADATA: WorldEntity[] = [
   },
   {
     id: "verdant-hollow",
+    authorId: "user-0002",
     name: "Verdant Hollow",
     description:
       "Bioluminescent forests rooted in ancient leviathans. A world hidden from the sky.",

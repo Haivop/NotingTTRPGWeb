@@ -5,34 +5,35 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { ReadonlyField } from "@/components/ui/ReadonlyField";
 import { useWorldItem } from "@/hooks/useWorldItem";
-import type { LocationItem } from "@/lib/types";
+import type { QuestItem } from "@/lib/types";
 
-type LocationFieldKey = keyof Pick<
-  LocationItem,
-  "name" | "detail" | "location_type" | "faction" | "description"
+type QuestFieldKey = keyof Pick<
+  QuestItem,
+  "name" | "hook" | "status" | "reward" | "objective" | "description"
 >;
 
-const LOCATION_FIELDS: Array<{
+const QUEST_FIELDS: Array<{
   label: string;
-  key: LocationFieldKey;
+  key: QuestFieldKey;
   multiline?: boolean;
 }> = [
-  { label: "Name", key: "name" },
-  { label: "Signature Detail", key: "detail" },
-  { label: "Controlling Faction", key: "faction" },
-  { label: "Location Type", key: "location_type" },
+  { label: "Quest Name", key: "name" },
+  { label: "Hook", key: "hook" },
+  { label: "Status", key: "status" },
+  { label: "Reward", key: "reward" },
+  { label: "Objective", key: "objective" },
   { label: "Description", key: "description", multiline: true },
 ];
 
-export default function LocationViewPage() {
+export default function QuestViewPage() {
   const params = useParams();
-  const locationId = params.locationId as string | undefined;
-  const { item, loading } = useWorldItem(locationId);
+  const questId = params.questId as string | undefined;
+  const { item, loading } = useWorldItem(questId);
 
   if (loading) {
     return (
       <PageContainer className="py-20 text-center text-white/70">
-        Loading location...
+        Loading quest...
       </PageContainer>
     );
   }
@@ -40,33 +41,33 @@ export default function LocationViewPage() {
   if (!item) {
     return (
       <PageContainer className="py-20 text-center text-white/70">
-        Location not found.
+        Quest not found.
       </PageContainer>
     );
   }
 
-  const location = item as LocationItem;
+  const quest = item as QuestItem;
 
   return (
     <PageContainer className="space-y-8">
       <header className="space-y-2">
         <p className="font-display text-xs uppercase tracking-[0.3em] text-purple-200/80">
-          Location Archive
+          Quest Dossier
         </p>
-        <h1 className="text-3xl font-semibold text-white">{location.name}</h1>
+        <h1 className="text-3xl font-semibold text-white">{quest.name}</h1>
         <p className="text-sm text-white/65">
-          Guests browse immutable lore only. Authoring roles unlock editable
-          controls for this location.
+          This quest sheet is view-only for Guests. Switch roles to modify
+          objectives or progress.
         </p>
       </header>
 
       <GlassPanel title="Details">
         <div className="space-y-6">
-          {LOCATION_FIELDS.map((field) => (
+          {QUEST_FIELDS.map((field) => (
             <ReadonlyField
               key={field.key}
               label={field.label}
-              value={location[field.key]}
+              value={quest[field.key]}
               multiline={field.multiline}
             />
           ))}

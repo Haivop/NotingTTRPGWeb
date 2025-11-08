@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
+import { useAuth } from "./AuthContext";
+import { Role } from "@/lib/types";
 
 const navLinks = [
   { href: "/search", label: "Search" },
@@ -12,12 +14,12 @@ const SIGNUP_ROUTE = "/sign-up";
 export interface SiteHeaderProps {
   cta?: React.ReactNode;
   className?: string;
-  isLoggedIn: boolean;
 }
 
-export function SiteHeader({ cta, className, isLoggedIn }: SiteHeaderProps) {
+export function SiteHeader({ cta, className }: SiteHeaderProps) {
+  const { isLoggedIn, role, switchRole } = useAuth();
+
   const getDestinationHref = (originalHref: string) => {
-    // Якщо користувач НЕ зареєстрований І це захищений маршрут, ведемо на SIGNUP_ROUTE
     if (!isLoggedIn && originalHref !== "/") {
       return SIGNUP_ROUTE;
     }
@@ -57,6 +59,19 @@ export function SiteHeader({ cta, className, isLoggedIn }: SiteHeaderProps) {
               </Link>
             ))}
           </nav>
+          {isLoggedIn && (
+            <div className="relative">
+              <select
+                value={role || ""}
+                onChange={(e) => switchRole(e.target.value as Role)}
+                className="rounded-md bg-gray-800 px-3 py-2 text-white"
+              >
+                <option value="Author">Author</option>
+                <option value="Co-Author">Co-Author</option>
+                <option value="Guest">Guest</option>
+              </select>
+            </div>
+          )}
           <Link
             href={getDestinationHref("/worlds/create")}
             className="group hidden rounded-full border border-purple-400/40 bg-purple-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-purple-100 shadow-[0_0_20px_rgba(124,58,237,0.35)] transition hover:border-purple-200/60 hover:bg-purple-400/20 md:inline-flex"
