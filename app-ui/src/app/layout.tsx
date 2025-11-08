@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AuthContextProvider } from "@/components/layout/AuthContext";
 import { AuthHeaderWrapper } from "@/components/layout/AuthHeaderWrapper";
 

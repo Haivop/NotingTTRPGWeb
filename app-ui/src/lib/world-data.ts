@@ -1,4 +1,5 @@
 import { WorldItem, WorldEntity } from "./types";
+export type { WorldItem };
 import {
   STORAGE_KEY,
   WORLD_METADATA_KEY,

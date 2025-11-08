@@ -16,5 +16,5 @@ export function AuthHeaderWrapper(props: AuthWrapperProps) {
   // Це відповідає значенню на сервері та запобігає невідповідності.
   const finalIsLoggedIn = isLoading ? false : isLoggedIn;
 
-  return <SiteHeader {...props} isLoggedIn={finalIsLoggedIn} />;
+  return <SiteHeader {...props} />;
 }

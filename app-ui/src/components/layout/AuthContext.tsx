@@ -1,56 +1,74 @@
 "use client";
 
 import React, { useState, useEffect, createContext, useContext } from "react";
-// 💡 Припускаємо, що UserEntity імпортується з files/types:
-import { UserEntity } from "@/lib/types";
+import { UserEntity, Role } from "@/lib/types";
 import {
   getCurrentAuthStatus,
   signInUser,
   signOutUser,
-  AuthStatus, // 'loading', 'guest', 'user'
+  AuthStatus,
 } from "@/lib/auth-api";
+import { getRole, setRole } from "@/lib/role-storage";
 
-// --- I. ЛОГІКА СТАНУ ---
 function useAuthLogic() {
   const [status, setStatus] = useState<AuthStatus>("loading");
-  // 🏆 1. ДОДАНО: Стан для зберігання об'єкта користувача
-  const [user, setUser] = useState<UserEntity | null>(null); // Завантаження статусу при монтуванні (імітація перевірки сесії)
+  const [user, setUser] = useState<UserEntity | null>(null);
+  const [role, setRoleState] = useState<Role | null>(null);
 
   useEffect(() => {
-    // getCurrentAuthStatus тепер повертає UserEntity | null
     getCurrentAuthStatus().then((userProfile: UserEntity | null) => {
       if (userProfile) {
         setStatus("user");
-        setUser(userProfile); // ✅ ЗБЕРІГАЄМО ОБ'ЄКТ
+        setUser(userProfile);
+        const storedRole = getRole();
+        if (storedRole) {
+          setRoleState(storedRole);
+        } else {
+          // Якщо роль не встановлена, за замовчуванням гість
+          setRole("Guest");
+          setRoleState("Guest");
+        }
       } else {
         setStatus("guest");
         setUser(null);
+        setRoleState(null);
       }
     });
   }, []);
 
   const login = async () => {
     setStatus("loading");
-    // signInUser тепер повертає UserEntity
     const userProfile = await signInUser();
-    setUser(userProfile); // ✅ ЗБЕРІГАЄМО
+    setUser(userProfile);
     setStatus("user");
+    // Встановлюємо роль за замовчуванням при вході
+    setRole("Author");
+    setRoleState("Author");
   };
 
   const logout = async () => {
     setStatus("loading");
-    await signOutUser(); // signOutUser очищає сховище
-    setUser(null); // ✅ ОЧИЩУЄМО
+    await signOutUser();
+    setUser(null);
     setStatus("guest");
+    setRoleState(null);
+  };
+
+  const switchRole = (newRole: Role) => {
+    setRole(newRole);
+    setRoleState(newRole);
+    console.log("Role switched to:", newRole);
   };
 
   return {
     isLoggedIn: status === "user",
     isLoading: status === "loading",
-    user, // 🏆 2. ПОВЕРТАЄМО ОБ'ЄКТ КОРИСТУВАЧА
+    user,
+    role,
     login,
     logout,
     status,
+    switchRole,
   };
 }
 // --- II. КОНТЕКСТ ТА ПРОВАЙДЕР ---
