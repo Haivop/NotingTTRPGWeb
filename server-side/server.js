@@ -1,6 +1,6 @@
-const app = require("./src/app/app");
+import app from "./src/app/app.js";
+import { loadEnvFile } from 'node:process';
 
-const { loadEnvFile } = require('node:process');
 loadEnvFile("./config/.env");
 
 app.listen(process.env.PORT, () => {

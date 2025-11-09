@@ -5,15 +5,11 @@ character.route("/:characterId")
     .get((req, res) => {
         res.send(`Character ${req.params.characterId} page in ${req.params.worldId} world!`);
     })
-    .post((req, res) => {});
-
-character.route("/:characterId/edit")
-    .get((req, res) => {})
     .post((req, res) => {})
+    .patch((req, res) => {})
     .delete((req, res) => {});
 
-character.route("/create")
-    .get((req, res) => {})
-    .post((req, res) => {});
+character.get("/:characterId/edit", (req, res) => {});
+character.get("/create", (req, res) => {});
 
 export default character;

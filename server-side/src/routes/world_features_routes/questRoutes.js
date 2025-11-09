@@ -6,15 +6,10 @@ quest.route("/:questId")
     res.send(`Quest ${req.params.questId} page in ${req.params.worldId} world!`);
     })
     .post((req, res) => {})
-    .delete((req, res) => {})
-
-quest.route("/:questId/edit")
-    .get((req, res) => {})
-    .post((req, res) => {})
+    .patch((req, res) => {})
     .delete((req, res) => {});
 
-quest.route("/create")
-    .get((req, res) => {})
-    .post((req, res) => {});
+quest.get("/:questId/edit", (req, res) => {});
+quest.get("/create", (req, res) => {});
 
 export default quest;

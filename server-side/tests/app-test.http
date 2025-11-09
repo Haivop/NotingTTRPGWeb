@@ -1,9 +1,11 @@
-@BaseApiUrl = http://localhost:6080/
+@BaseApiUrl = http://localhost:6080
+
+GET {{BaseApiUrl}}
 
 ### User Login
-GET [{{BaseApiUrl}}]/user/login
+GET {{BaseApiUrl}}/user/login
 
-POST [{{BaseApiUrl}}]/user/login
+POST {{BaseApiUrl}}/user/login
 Content-Type: application/json
 
 {  
@@ -11,9 +13,21 @@ Content-Type: application/json
     "password": "pass123"
 }
 
+### User Login
+GET {{BaseApiUrl}}/user/signup
+
+POST {{BaseApiUrl}}/user/signup
+Content-Type: application/json
+
+{  
+    "username": "haivo", 
+    "email": "exampl.box@gmail.com",
+    "password": "pass123"
+}
+
 ### User Account
 
-GET [{{BaseApiUrl}}]/user/account
+GET {{BaseApiUrl}}/user/account
 Authorization: token
 
 ###

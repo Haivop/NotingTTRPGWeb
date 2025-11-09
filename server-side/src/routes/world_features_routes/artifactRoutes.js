@@ -4,17 +4,12 @@ const artifact = Router({ mergeParams: true });
 artifact.route("/:artifactId")
     .get((req, res) => {
         res.send(`Artifact ${req.params.artifactId} page in ${req.params.worldId} world!`);
-    })
-    .post((req, res) => {res.send(`Artifact ${req.params.artifactId} posted`)})
-    .delete((req, res) => {});
+    }) // view page
+    .post((req, res) => {}) // create
+    .patch((req, res) => {}) // edit
+    .delete((req, res) => {}); // delete
 
-artifact.route("/:artifactId/edit")
-    .get((req, res) => {})
-    .post((req, res) => {})
-    .delete((req, res) => {});
-
-artifact.route("/create")
-    .get((req, res) => {})
-    .post((req, res) => {});
+artifact.get("/:artifactId/edit", (req, res) => {}); // view edit page
+artifact.get("/create", (req, res) => {}); // view create page
 
 export default artifact;

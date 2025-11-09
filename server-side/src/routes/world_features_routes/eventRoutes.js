@@ -5,15 +5,11 @@ event.route("/:eventId")
     .get((req, res) => {
         res.send(`Event ${req.params.characterId} page in ${req.params.worldId} world!`);
     })
-    .post((req, res) => {});
-
-event.route("/:eventId/edit")
-    .get((req, res) => {})
     .post((req, res) => {})
+    .patch((req, res) => {})
     .delete((req, res) => {});
 
-event.route("/create")
-    .get((req, res) => {})
-    .post((req, res) => {});
+event.get("/:eventId/edit", (req, res) => {});
+event.get("/create", (req, res) => {});
 
 export default event;

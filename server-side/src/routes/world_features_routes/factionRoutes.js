@@ -5,15 +5,11 @@ faction.route("/:factionId")
     .get((req, res) => {
         res.send(`Faction ${req.params.factionId} page in ${req.params.worldId} world!`);
     })
-    .post((req, res) => {});
-    
-faction.route("/:factionId/edit")
-    .get((req, res) => {})
     .post((req, res) => {})
+    .patch((req, res) => {})
     .delete((req, res) => {});
 
-faction.route("/create")
-    .get((req, res) => {})
-    .post((req, res) => {});
+faction.get("/:factionId/edit", (req, res) => {});
+faction.get("/create", (req, res) => {});
 
 export default faction;

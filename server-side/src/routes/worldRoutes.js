@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import artifact from "./world_features_routes/artifactRoutes";
-import quest from "./world_features_routes/questRoutes";
-import character from "./world_features_routes/characterRoutes";
-import event from "./world_features_routes/eventRoutes";
-import faction from "./world_features_routes/factionRoutes";
-import location from "./world_features_routes/locationRoutes";
+import artifact from "./world_features_routes/artifactRoutes.js";
+import quest from "./world_features_routes/questRoutes.js";
+import character from "./world_features_routes/characterRoutes.js";
+import event from "./world_features_routes/eventRoutes.js";
+import faction from "./world_features_routes/factionRoutes.js";
+import location from "./world_features_routes/locationRoutes.js";
 
 //world router
 const world = Router({ mergeParams: true });
@@ -28,7 +28,7 @@ world.get("/:worldId/map", (req, res) => {});
 
 world.route("/:worldId/edit")
     .get((req, res) => {})
-    .post((req, res) => {})
+    .patch((req, res) => {})
     .delete((req, res) => {});
 
 world.route("/create")
