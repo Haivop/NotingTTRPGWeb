@@ -1,6 +1,6 @@
 import mySqlPool from "../db/mySQL_db_connection.js";
 
-export class World {
+export class WorldModel {
     static async getAll(){
         const [worlds] = await mySqlPool.query("SELECT * FROM Worlds");
         return worlds;
@@ -14,7 +14,7 @@ export class World {
     static async create(data){
         try{
             const {user_id, title, description, is_public, images_url} = data;
-            mySqlPool.query(`INSERT INTO Worlds (id, owner_id, title, description, is_public, images_url, creation_date, last_update_date) 
+            mySqlPool.query(`INSERT INTO Worlds (id, owner_id, title, description, is_public, map_url, creation_date, last_update_date) 
                 VALUES (uuid(), ?, ?, ?, ?, ?, CURDATE(), CURDATE())`, 
                 [user_id, title, description, is_public, images_url]);
         }

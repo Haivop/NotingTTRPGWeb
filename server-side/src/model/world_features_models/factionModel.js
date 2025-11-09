@@ -1,14 +1,14 @@
-import mySqlPool from "../db/mySQL_db_connection.js";
+import mySqlPool from "../../db/mySQL_db_connection.js";
 import { WorldItem } from "./worldItemModel.js";
 
-export class Faction extends WorldItem {
-    static async getAll(){
-        const [factions] = await mySqlPool.query("SELECT f.* FROM Factions f JOIN Worlds w ON w.id = f.world_id");
+export class FactionModel extends WorldItem {
+    static async getAll(world_id){
+        const [factions] = await mySqlPool.query("SELECT f.* FROM Factions f JOIN Worlds w ON w.id = f.world_id", [world_id]);
         return factions;
     }
 
-    static async getById(id){
-        const faction = await mySqlPool.query(`SELECT f.* FROM Factions f JOIN Worlds w ON w.id = f.world_id WHERE f.id = ?`, id);
+    static async getById(id, world_id){
+        const faction = await mySqlPool.query(`SELECT f.* FROM Factions f JOIN Worlds w ON w.id = f.world_id WHERE f.id = ?`, [world_id, id]);
         return faction;
     }
 

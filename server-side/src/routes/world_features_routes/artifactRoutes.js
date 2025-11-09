@@ -1,15 +1,57 @@
 import { Router } from "express";
+import { ArtifactModel } from "../../model/world_features_models/artifactModel.js";
+import { checkAuth } from "../../middleware/authMiddleware.js";
+
 const artifact = Router({ mergeParams: true });
 
 artifact.route("/:artifactId")
     .get((req, res) => {
-        res.send(`Artifact ${req.params.artifactId} page in ${req.params.worldId} world!`);
+        const { worldId, artifactId } = req.params
+        res.status(200).json({
+            itemType: `Artifact`,
+            item: ArtifactModel.getById(artifactId, worldId)
+        });
     }) // view page
-    .post((req, res) => {}) // create
-    .patch((req, res) => {}) // edit
-    .delete((req, res) => {}); // delete
+    .patch(checkAuth, (req, res) => {
+        const { worldId, artifactId } = req.params;
+        const newData = {character_id, title, description} = req.body;
 
-artifact.get("/:artifactId/edit", (req, res) => {}); // view edit page
-artifact.get("/create", (req, res) => {}); // view create page
+        ArtifactModel.update(artifactId, newData);
+
+        res.status(200).json({
+            message: "artifact data upadated",
+            updatedData : ArtifactModel.getById(artifactId, worldId)
+        });
+    }) // edit
+    .delete(checkAuth, (req, res) => {
+        ArtifactModel.delete(req.params.artifactId);
+        res.status(200).json({
+            message: "Artifact deleted"
+        });
+    }); // delete
+
+artifact.get("/:artifactId/edit", checkAuth, (req, res) => {
+    const { worldId, artifactId } = req.params;
+    res.status(200).json({
+        message: "Artifact edit page",
+        item: ArtifactModel.getById(artifactId, worldId)
+    });
+}); // view edit page
+
+artifact.get("/create", checkAuth, (req, res) => {
+    res.status(200).json({
+        message: "Artifact creation page"
+    });
+}); // view create page
+artifact.post("/create", checkAuth, (req, res) => {
+    const artifactData = {character_id, title, description} = req.body;
+    artifactData.world_id = { worldId } = req.params;
+
+    ArtifactModel.create(artifactData);
+    res.status(201).json({
+        message: "Artifact created",
+        created: artifactData
+    });
+});
 
 export default artifact;

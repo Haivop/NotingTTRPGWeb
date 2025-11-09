@@ -1,14 +1,14 @@
-import mySqlPool from "../db/mySQL_db_connection.js";
+import mySqlPool from "../../db/mySQL_db_connection.js";
 import { WorldItem } from "./worldItemModel.js";
 
-export class Artifact extends WorldItem {
-    static async getAll(){
-        const [artifacts] = await mySqlPool.query("SELECT a.* FROM Artifacts a JOIN Worlds w ON w.id = a.world_id");
+export class ArtifactModel extends WorldItem {
+    static async getAll(world_id){
+        const [artifacts] = await mySqlPool.query("SELECT a.* FROM Artifacts a JOIN Worlds w ON w.id = ?", [world_id]);
         return artifacts;
     }
 
-    static async getById(id){
-        const artifact = await mySqlPool.query(`SELECT a.* FROM Artifacts a JOIN Worlds w ON w.id = a.world_id WHERE a.id = ?`, id);
+    static async getById(id, world_id){
+        const artifact = await mySqlPool.query(`SELECT a.* FROM Artifacts a JOIN Worlds w ON w.id = ? WHERE a.id = ?`, [world_id, id]);
         return artifact;
     }
 

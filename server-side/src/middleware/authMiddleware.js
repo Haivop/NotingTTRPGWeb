@@ -19,3 +19,11 @@ export function checkAuth(req, res, next) {
         res.redirect("/user/login", 403);
     }
 }
+
+export function isOwner(){
+    
+}
+
+export function isCoAuthor(){
+    
+}
