@@ -11,12 +11,12 @@ const locationController = new WorldItemsController(locationModel);
 
 location.route("/:locationId")
     .get(locationController.itemPage)
-    .patch(checkAuth, locationController.updateItem) // edit
-    .delete(checkAuth, locationController.deleteItem); // delete
+    .patch(checkAuth, isCoAuthorOrOwner, locationController.updateItem) // edit
+    .delete(checkAuth, isCoAuthorOrOwner, locationController.deleteItem); // delete
 
-location.get("/:locationId/edit", checkAuth, locationController.edittingPage);
+location.get("/:locationId/edit", checkAuth, isCoAuthorOrOwner, locationController.edittingPage);
 
-location.get("/create", checkAuth, locationController.creationPage);
-location.post("/create", checkAuth, locationController.createItem);
+location.get("/create", checkAuth, isCoAuthorOrOwner, locationController.creationPage);
+location.post("/create", checkAuth, isCoAuthorOrOwner, locationController.createItem);
 
 export default location;

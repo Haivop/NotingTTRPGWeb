@@ -11,12 +11,12 @@ const eventController = new WorldItemsController(eventModel);
 
 event.route("/:eventId")
     .get(eventController.itemPage)
-    .patch(checkAuth, eventController.updateItem) // edit
-    .delete(checkAuth, eventController.deleteItem); // delete
+    .patch(checkAuth, isCoAuthorOrOwner, eventController.updateItem) // edit
+    .delete(checkAuth, isCoAuthorOrOwner, eventController.deleteItem); // delete
 
-event.get("/:eventId/edit", eventController.edittingPage);
+event.get("/:eventId/edit", isCoAuthorOrOwner, eventController.edittingPage);
 
-event.get("/create", checkAuth, eventController.creationPage);
-event.post("/create", checkAuth, eventController.createItem);
+event.get("/create", checkAuth, isCoAuthorOrOwner, eventController.creationPage);
+event.post("/create", checkAuth, isCoAuthorOrOwner, eventController.createItem);
 
 export default event;

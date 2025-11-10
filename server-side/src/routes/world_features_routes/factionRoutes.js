@@ -11,12 +11,12 @@ const factionController = new WorldItemsController(factionModel);
 
 faction.route("/:factionId")
     .get(factionController.itemPage)
-    .patch(checkAuth, factionController.updateItem) // edit
-    .delete(checkAuth, factionController.deleteItem); // delete
+    .patch(checkAuth, isCoAuthorOrOwner, factionController.updateItem) // edit
+    .delete(checkAuth, isCoAuthorOrOwner, factionController.deleteItem); // delete
 
-faction.get("/:factionId/edit", checkAuth, factionController.edittingPage);
+faction.get("/:factionId/edit", checkAuth, isCoAuthorOrOwner, factionController.edittingPage);
 
-faction.get("/create", checkAuth, factionController.creationPage);
-faction.post("/create", checkAuth, factionController.createItem);
+faction.get("/create", checkAuth, isCoAuthorOrOwner, factionController.creationPage);
+faction.post("/create", checkAuth, isCoAuthorOrOwner, factionController.createItem);
 
 export default faction;

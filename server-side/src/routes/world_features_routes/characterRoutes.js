@@ -11,12 +11,12 @@ const characterController = new WorldItemsController(characterModel);
 
 character.route("/:characterId")
     .get(characterController.itemPage)
-    .patch(checkAuth, characterController.updateItem) // edit
-    .delete(checkAuth, characterController.deleteItem); // delete
+    .patch(checkAuth, isCoAuthorOrOwner, characterController.updateItem) // edit
+    .delete(checkAuth, isCoAuthorOrOwner, characterController.deleteItem); // delete
 
-character.get("/:characterId/edit", checkAuth, characterController.edittingPage);
+character.get("/:characterId/edit", checkAuth, isCoAuthorOrOwner, characterController.edittingPage);
 
-character.get("/create", checkAuth, characterController.creationPage);
-character.post("/create", checkAuth, characterController.createItem);
+character.get("/create", checkAuth, isCoAuthorOrOwner, characterController.creationPage);
+character.post("/create", checkAuth, isCoAuthorOrOwner, characterController.createItem);
 
 export default character;
