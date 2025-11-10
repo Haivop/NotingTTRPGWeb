@@ -1,57 +1,22 @@
 import { Router } from "express";
-import { ArtifactModel } from "../../model/world_features_models/artifactModel.js";
+
+import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth } from "../../middleware/authMiddleware.js";
+import { GeneralModel } from "../../model/GeneralModel.js";
+import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const artifact = Router({ mergeParams: true });
+const artifactModel = new GeneralModel(db_connection, "Artifacts").init();
+const artifactController = new WorldItemsController(artifactModel);
 
 artifact.route("/:artifactId")
-    .get((req, res) => {
-        const { worldId, artifactId } = req.params
-        res.status(200).json({
-            itemType: `Artifact`,
-            item: ArtifactModel.getById(artifactId, worldId)
-        });
-    }) // view page
-    .patch(checkAuth, (req, res) => {
-        const { worldId, artifactId } = req.params;
-        const newData = {character_id, title, description} = req.body;
+    .get(artifactController.itemPage)
+    .patch(checkAuth, artifactController.updateItem)
+    .delete(checkAuth, artifactController.deleteItem);
 
-        ArtifactModel.update(artifactId, newData);
+artifact.get("/:artifactId/edit", checkAuth, artifactController.edittingPage);
 
-        res.status(200).json({
-            message: "artifact data upadated",
-            updatedData : ArtifactModel.getById(artifactId, worldId)
-        });
-    }) // edit
-    .delete(checkAuth, (req, res) => {
-        ArtifactModel.delete(req.params.artifactId);
-        res.status(200).json({
-            message: "Artifact deleted"
-        });
-    }); // delete
-
-artifact.get("/:artifactId/edit", checkAuth, (req, res) => {
-    const { worldId, artifactId } = req.params;
-    res.status(200).json({
-        message: "Artifact edit page",
-        item: ArtifactModel.getById(artifactId, worldId)
-    });
-}); // view edit page
-
-artifact.get("/create", checkAuth, (req, res) => {
-    res.status(200).json({
-        message: "Artifact creation page"
-    });
-}); // view create page
-artifact.post("/create", checkAuth, (req, res) => {
-    const artifactData = {character_id, title, description} = req.body;
-    artifactData.world_id = { worldId } = req.params;
-
-    ArtifactModel.create(artifactData);
-    res.status(201).json({
-        message: "Artifact created",
-        created: artifactData
-    });
-});
+artifact.get("/create", checkAuth, artifactController.creationPage);
+artifact.post("/create", checkAuth, artifactController.createItem);
 
 export default artifact;

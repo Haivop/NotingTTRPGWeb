@@ -1,57 +1,22 @@
 import { Router } from "express";
-import { EventModel } from "../../model/world_features_models/eventModel.js";
+
+import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth } from "../../middleware/authMiddleware.js";
+import { GeneralModel } from "../../model/GeneralModel.js";
+import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const event = Router({ mergeParams: true });
+const eventModel = new GeneralModel(db_connection, "Events").init();
+const eventController = new WorldItemsController(eventModel);
 
 event.route("/:eventId")
-    .get((req, res) => {
-        const { worldId, eventId } = req.params
-        res.status(200).json({
-            itemType: `Event`,
-            item: EventModel.getById(eventId, worldId)
-        });
-    })
-    .patch(checkAuth, (req, res) => {
-        const { worldId, eventId } = req.params;
-        const newData = {title, timeline_group, ingame_date, description} = req.body;
+    .get(eventController.itemPage)
+    .patch(checkAuth, eventController.updateItem) // edit
+    .delete(checkAuth, eventController.deleteItem); // delete
 
-        EventModel.update(eventId, newData);
+event.get("/:eventId/edit", eventController.edittingPage);
 
-        res.status(200).json({
-            message: "event data upadated",
-            updatedData : EventModel.getById(eventId, worldId)
-        });
-    }) // edit
-    .delete(checkAuth, (req, res) => {
-        EventModel.delete(req.params.eventId);
-        res.status(200).json({
-            message: "event deleted"
-        });
-    }); // delete
-
-event.get("/:eventId/edit", checkAuth, (req, res) => {
-    const { worldId, eventId } = req.params;
-    res.status(200).json({
-        message: "event edit page",
-        item: EventModel.getById(eventId, worldId)
-    });
-});
-
-event.get("/create", checkAuth, (req, res) => {
-    res.status(200).json({
-        message: "event creation page"
-    });
-});
-event.post("/create", checkAuth, (req, res) => {
-    const eventData = {title, timeline_group, ingame_date, description} = req.body;
-    eventData.world_id = { worldId } = req.params;
-
-    EventModel.create(eventData);
-    res.status(201).json({
-        massage: "event created",
-        created: eventData
-    });
-});
+event.get("/create", checkAuth, eventController.creationPage);
+event.post("/create", checkAuth, eventController.createItem);
 
 export default event;

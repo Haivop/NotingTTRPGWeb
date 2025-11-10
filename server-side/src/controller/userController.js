@@ -1,38 +1,43 @@
-import { User } from "../model/userModel.js";
+import { UserModel } from "../model/UserModel.js";
 
-export const signUpHandler = (req, res) => {
-    const {username, email, password} = req.body;
-    
-    if (!(username && password)){
-        const error = new Error("Empty input fields!");
-        next(error);
-    }
-
-    res.status(201).json({
-        massage: "Handling POST request to /signup",
-        signUpedUser: {
-            username: username,
-            email: email,
-            password: password
+export class UserController {
+    static async signUpHandler (req, res) {
+        const {username, email, password} = req.body;
+        
+        if (!(username && password)){
+            const error = new Error("Empty input fields!");
+            next(error);
         }
-    });
 
-    User.create({username, email, password});
-};
+        res.status(201).json({
+            massage: "Handling POST request to /signup",
+            signUpedUser: {username, email, password}
+        });
 
-export function loginUser (req, res) {
-    const {username, password} = req.body;
-    const user = User.getAllUsers().find((u) => (u.username === username || u.email === username) && u.password === password );
-    if (!user){ return res.status(401).json({ massage: "Invalid credentials!" }); };
-    
-    const payload = {
-        id: user.id,
-        username: user.username,
-        email: user.email
+        UserModel.create({username, email, password});
     };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
+    static async loginUser (req, res) {
+        const {username, password} = req.body;
+        const user = UserModel.getAllUsers().find((u) => (u.username === username || u.email === username) && u.password === password );
+        if (!user){ return res.status(401).json({ massage: "Invalid credentials!" }); };
+        
+        const payload = {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        };
 
-    res.json({ massage: "Login successful", token});
-    res.redirect("/");
-};
+        const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
+
+        res.json({ massage: "Login successful", token});
+        res.redirect("/");
+    };
+
+    static async accountPage (req, res) { 
+        res.json({ 
+            massage: `Account page!`, 
+            user: req.user
+        }); 
+    };
+}

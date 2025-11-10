@@ -1,57 +1,22 @@
 import { Router } from "express";
-import { QuestModel } from "../../model/world_features_models/questModel.js";
+
+import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth } from "../../middleware/authMiddleware.js";
+import { GeneralModel } from "../../model/GeneralModel.js";
+import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const quest = Router({ mergeParams: true });
+const questModel = new GeneralModel(db_connection, "Quests").init();
+const questController = new WorldItemsController(questModel);
 
 quest.route("/:questId")
-    .get((req, res) => {
-        const { worldId, questId } = req.params
-        res.status(200).json({
-            itemType: `Quest`,
-            item: QuestModel.getById(questId, worldId)
-        });
-    })
-    .patch(checkAuth, (req, res) => {
-        const { worldId, questId } = req.params;
-        const newData = { q_status, title, reward, objective, description } = req.body;
+    .get(questController.itemPage)
+    .patch(checkAuth, questController.updateItem) // edit
+    .delete(checkAuth, questController.deleteItem); // delete
 
-        QuestModel.update(questId, newData);
+quest.get("/:questId/edit", checkAuth, questController.edittingPage);
 
-        res.status(200).json({
-            message: "quest data upadated",
-            updatedData : QuestModel.getById(questId, worldId)
-        });
-    }) // edit
-    .delete(checkAuth, (req, res) => {
-        QuestModel.delete(req.params.questId);
-        res.status(200).json({
-            message: "quest deleted"
-        });
-    }); // delete
-
-quest.get("/:questId/edit", checkAuth, (req, res) => {
-    const { worldId, questId } = req.params;
-    res.status(200).json({
-        message: "quest edit page",
-        item: QuestModel.getById(questId, worldId)
-    });
-});
-
-quest.get("/create", checkAuth, (req, res) => {
-    res.status(200).json({
-        message: "quest creation page"
-    });
-});
-quest.post("/create", checkAuth, (req, res) => {
-    const questData = { q_status, title, reward, objective, description } = req.body;
-    questData.world_id = { worldId } = req.params;
-
-    QuestModel.create(questData);
-    res.status(201).json({
-        massage: "quest created",
-        created: questData
-    });
-});
+quest.get("/create", checkAuth, questController.creationPage);
+quest.post("/create", checkAuth, questController.createItem);
 
 export default quest;

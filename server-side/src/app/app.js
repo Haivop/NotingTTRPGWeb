@@ -15,6 +15,11 @@ app.use(cors());
 app.use("/world", world);
 app.use("/user", user);
 
+app.param(['artifactId', 'characterId', 'eventId', 'factionId', 'locationId', 'questId'], (req, res, next, value) => {
+    req.params.id = value;
+    next();
+})
+
 app.get("/", (req, res) => {
     res.send("Hub!");
 });

@@ -1,23 +1,18 @@
 import { Router } from "express";
 
 import { checkAuth } from "../middleware/authMiddleware.js";
-import { loginUser, signUpHandler } from "../controller/userController.js"; 
+import { UserController } from "../controller/UserController.js"; 
     
 const user = Router({ mergeParams: true });
 
 user.route("/login")
     .get((req, res) => { res.send("Login page!"); })
-    .post(loginUser);
+    .post(UserController.loginUser);
 
 user.route("/signup")
     .get((req, res) => { res.send("Sign Up page!"); })
-    .post(signUpHandler);
+    .post(UserController.signUpHandler);
 
-user.get("/account", checkAuth, (req, res) => { 
-    res.json({ 
-        massage: `Account page!`, 
-        user: req.user
-    }); 
-});
+user.get("/account", checkAuth, UserController.accountPage);
 
 export default user;

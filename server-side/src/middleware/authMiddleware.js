@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import { loadEnvFile } from 'node:process';
+import { WorldModel } from "../model/worldModel.js";
 
 loadEnvFile("./config/.env");
-    
+
 export function checkAuth(req, res, next) {
     const authHeader = req.headers.authorization;
     if(!authHeader){return res.status(401).json({ message: 'Authorization header missing' })}
@@ -20,10 +21,26 @@ export function checkAuth(req, res, next) {
     }
 }
 
-export function isOwner(){
-    
+export function isOwner(req, res, next) {
+    const user = req.user;
+    const { worldId } = req.params;
+
+    if(!(user === WorldModel.getOwner(worldId))){
+        const error = new Error("Not found");
+        error.status = 404;
+        next(error);
+    }
+    next();
 }
 
-export function isCoAuthor(){
-    
+export function isCoAuthorOrOwner(req, res, next){
+    const user = req.user;
+    const { worldId } = req.params;
+
+    if(!(user === (WorldModel.getOwner(worldId) || WorldModel.getCoAuthors(worldId)))){
+        const error = new Error("Not found");
+        error.status = 404;
+        next(error);
+    }
+    next();
 }

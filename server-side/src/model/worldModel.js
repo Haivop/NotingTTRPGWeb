@@ -1,33 +1,74 @@
-import mySqlPool from "../db/mySQL_db_connection.js";
+import { db_connection } from "../db/MySqlDb.js";
 
 export class WorldModel {
     static async getAll(){
-        const [worlds] = await mySqlPool.query("SELECT * FROM Worlds");
-        return worlds;
+        const [rows] = await db_connection.query(`SELECT * FROM Worlds`);
+        return rows;
     }
 
-    static async getById(id){
-        const world = await mySqlPool.query(`SELECT * FROM Worlds w WHERE w.id = ?`, id);
-        return world;
+    static async getById(world_id){
+        const [rows] = await db_connection.query(`SELECT * FROM Worlds w WHERE w.id = ?`, [world_id]);
+        return rows[0];
     }
 
-    static async create(data){
+    static async create(data, coAuthors){
+        let preparedValues;
+        let fieldNames = [];
+
+        const [fields] = await db_connection.query(`SELECT * FROM Worlds w WHERE w.id = ? LIMIT 1`, [world_id]);
+        
+        for(obj in fields){ fieldNames.concat(obj.name) };
+
+        for(item in data){
+            preparedValues.concat("?, ");
+            if(item === data[Object.keys(data)[Object.keys(data).length - 1]]){
+                preparedValues.concat("?");
+            }; 
+
+            if(fieldNames.include(item)) continue;
+            throw new Error("Wrong data marked in POST form! Fields in DB Table do not match with Data Object Keys");
+        }
+
         try{
-            const {user_id, title, description, is_public, images_url} = data;
-            mySqlPool.query(`INSERT INTO Worlds (id, owner_id, title, description, is_public, map_url, creation_date, last_update_date) 
-                VALUES (uuid(), ?, ?, ?, ?, ?, CURDATE(), CURDATE())`, 
-                [user_id, title, description, is_public, images_url]);
+            db_connection.query(`INSERT INTO Worlds (id, ${Object.keys(data)}) 
+                VALUES (uuid(), ${preparedValues})`, Object.values());
+
+            if(!coAuthors) return;
+
+            for(user in coAuthors){
+                this.addCoAuthor(user.id);
+            }
         }
         catch(err){
             console.error("Error occured: " + err);
         }
     }
 
-    static async update(id, newData){
+    static async update(id, newData, coAuthors){
+        let setQuery;
+        let fieldNames = [];
+
+        const [fields] = await db_connection.query(`SELECT * FROM Worlds w WHERE w.id = ? LIMIT 1`, [world_id]);
+        
+        for(obj in fields){ fieldNames.concat(obj.name) };
+
+        for(item in Object.keys(newData)){
+            setQuery.concat(`${item} = ?, `);
+            if(item === data[Object.keys(data)[Object.keys(data).length - 1]]){
+                setQuery.concat(`${item} = ?`);
+            };
+
+            if(fieldNames.include(item)) continue;
+            throw new Error("Wrong data marked in PATCH form! Fields in DB Table do not match with Data Object Keys");
+        };
+
         try{
-            const {title, description, is_public, images_url} = newData;
-            mySqlPool.query(`UPDATE Worlds w SET title = ?, description = ?, is_public = ?, 
-                images_url = ?, last_update_date = CURDATE() WHERE w.id = ?`, [title, description, is_public, images_url, id]);
+            db_connection.query(`UPDATE Worlds w SET ${setQuery} WHERE w.id = ?`, Object.values(newData).concat([id]));
+
+            for(user in coAuthors){
+                if(this.getCoAuthors().include(user)) continue;
+                this.addCoAuthor(user.id);
+            };
         }
         catch(err){
             console.error("Error occured: " + err);
@@ -36,27 +77,36 @@ export class WorldModel {
 
     static async delete(id){
         try{
-            mySqlPool.query(`DELETE FROM Worlds w WHERE w.id = ?`, [id]);
+            db_connection.query(`DELETE FROM Worlds w WHERE w.id = ?`, [id]);
+            db_connection.query(`DELETE FROM WorldCoAuthors wca WHERE w.id = ?`, [id])
         }
         catch(err){
             console.error("Error occured: " + err);
         }
     }
 
-    static async addCoAuthor(data){
+    static async getOwner(world_id){
+        const [rows] = await db_connection.query(`SELECT w.owner_id FROM Worlds w WHERE w.id = ?`, [world_id]);
+        return Object.values(rows[0]);
+    }
+
+    static async getCoAuthors(world_id){
+        const [rows] = await db_connection.query(`SELECT u.* FROM Users u JOIN WorldCoAuthors wca ON wca.user_id = u.id WHERE wca.world_id = ?`, [world_id]);
+        return rows;
+    }
+
+    static async addCoAuthor(user_id, world_id){
         try{
-            const {user_id, world_id} = data;
-            mySqlPool.query(`INSERT INTO WorldCoAuthors (user_id, world_id) VALUES (?, ?)`, [user_id, world_id]);
+            db_connection.query(`INSERT INTO WorldCoAuthors (user_id, world_id) VALUES (?, ?)`, [user_id, world_id]);
         }
         catch(err){
             console.error("Error occured: " + err);
         }
     }
 
-    static async removeCoAuthor(data){
+    static async removeCoAuthor(user_id, world_id){
         try{
-            const {user_id, world_id} = data;
-            mySqlPool.query(`DELETE FROM WorldCoAuthors wca WHERE wca.user_id = ? AND wca.world_id = ?`, [user_id, world_id]);
+            db_connection.query(`DELETE FROM WorldCoAuthors wca WHERE wca.user_id = ? AND wca.world_id = ?`, [user_id, world_id]);
         }
         catch(err){
             console.error("Error occured: " + err);
