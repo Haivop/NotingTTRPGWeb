@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { db_connection } from "../../db/MySqlDb.js";
-import { checkAuth } from "../../middleware/authMiddleware.js";
+import { checkAuth, isCoAuthorOrOwner } from "../../middleware/authMiddleware.js";
 import { GeneralModel } from "../../model/GeneralModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";;
 

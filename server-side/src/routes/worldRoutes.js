@@ -7,7 +7,7 @@ import event from "./world_features_routes/eventRoutes.js";
 import faction from "./world_features_routes/factionRoutes.js";
 import location from "./world_features_routes/locationRoutes.js";
 
-import { checkAuth } from "../middleware/authMiddleware.js";
+import { checkAuth, isOwner } from "../middleware/authMiddleware.js";
 import { WorldController } from "../controller/WorldController.js"
 
 //world router
@@ -22,13 +22,13 @@ world.use("/:worldId/location", location);
 
 world.route("/:worldId")
     .get(WorldController.mainPage)
-    .patch(checkAuth, WorldController.update)
-    .delete(checkAuth, WorldController.delete);
+    .patch(checkAuth, isOwner, WorldController.update)
+    .delete(checkAuth, isOwner, WorldController.delete);
 
 world.get("/:worldId/map", (req, res) => {}); 
 
 world.route("/:worldId/edit")
-    .get(checkAuth, WorldController.edditingPage);
+    .get(checkAuth, isOwner, WorldController.edditingPage);
 
 world.route("/create")
     .get(checkAuth, WorldController.creationPage)
