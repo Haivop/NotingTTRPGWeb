@@ -6,17 +6,18 @@ import { GeneralModel } from "../../model/GeneralModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const location = Router({ mergeParams: true });
-const locationModel = new GeneralModel(db_connection, "Locations").init();
-const locationController = new WorldItemsController(locationModel);
+const locationModel = new GeneralModel(db_connection, "Locations");
+locationModel.init();
+export const locationController = new WorldItemsController(locationModel);
+
+location.get("/:locationId/edit", /*checkAuth, isCoAuthorOrOwner,*/ locationController.edittingPage.bind(locationController));
+
+location.get("/create", /*checkAuth, isCoAuthorOrOwner,*/ locationController.creationPage.bind(locationController));
+location.post("/create", /*checkAuth, isCoAuthorOrOwner,*/ locationController.createItem.bind(locationController));
 
 location.route("/:locationId")
-    .get(locationController.itemPage)
-    .patch(checkAuth, isCoAuthorOrOwner, locationController.updateItem) // edit
-    .delete(checkAuth, isCoAuthorOrOwner, locationController.deleteItem); // delete
-
-location.get("/:locationId/edit", checkAuth, isCoAuthorOrOwner, locationController.edittingPage);
-
-location.get("/create", checkAuth, isCoAuthorOrOwner, locationController.creationPage);
-location.post("/create", checkAuth, isCoAuthorOrOwner, locationController.createItem);
+    .get(locationController.itemPage.bind(locationController))
+    .patch(/*checkAuth, isCoAuthorOrOwner,*/ locationController.updateItem.bind(locationController)) // edit
+    .delete(/*checkAuth, isCoAuthorOrOwner,*/ locationController.deleteItem.bind(locationController)); // delete
 
 export default location;

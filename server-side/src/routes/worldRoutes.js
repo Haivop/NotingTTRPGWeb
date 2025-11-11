@@ -20,18 +20,18 @@ world.use("/:worldId/event", event);
 world.use("/:worldId/faction", faction);
 world.use("/:worldId/location", location);
 
-world.route("/:worldId")
-    .get(WorldController.mainPage)
-    .patch(checkAuth, isOwner, WorldController.update)
-    .delete(checkAuth, isOwner, WorldController.delete);
+world.route("/:worldId/edit")
+    .get(/* checkAuth, isOwner,*/ WorldController.edditingPage);
 
 world.get("/:worldId/map", (req, res) => {}); 
 
-world.route("/:worldId/edit")
-    .get(checkAuth, isOwner, WorldController.edditingPage);
+world.route("/:worldId")
+    .get(WorldController.mainPage)
+    .patch(/* checkAuth, isOwner,*/  WorldController.update)
+    .delete(/* checkAuth, isOwner,*/  WorldController.delete);
 
 world.route("/create")
-    .get(checkAuth, WorldController.creationPage)
+    .get(/*checkAuth,*/ WorldController.creationPage)
     .post(checkAuth, WorldController.create);
 
 export default world;

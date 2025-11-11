@@ -1,4 +1,6 @@
-import { UserModel } from "../model/UserModel.js";
+import jwt from "jsonwebtoken";
+
+import { UserModel } from "../model/userModel.js";
 
 export class UserController {
     static async signUpHandler (req, res) {
@@ -19,7 +21,8 @@ export class UserController {
 
     static async loginUser (req, res) {
         const {username, password} = req.body;
-        const user = UserModel.getAllUsers().find((u) => (u.username === username || u.email === username) && u.password === password );
+        const users = await UserModel.getAll();
+        const user = users.find((u) => ((u.username === username || u.email === username) && u.password_hash === password));
         if (!user){ return res.status(401).json({ massage: "Invalid credentials!" }); };
         
         const payload = {
@@ -31,7 +34,6 @@ export class UserController {
         const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
 
         res.json({ massage: "Login successful", token});
-        res.redirect("/");
     };
 
     static async accountPage (req, res) { 

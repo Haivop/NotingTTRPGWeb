@@ -12,13 +12,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use("/world", world);
-app.use("/user", user);
-
 app.param(['artifactId', 'characterId', 'eventId', 'factionId', 'locationId', 'questId'], (req, res, next, value) => {
     req.params.id = value;
+    console.log(req.params.id, value);
     next();
 })
+
+app.use("/world", world);
+app.use("/user", user);
 
 app.get("/", (req, res) => {
     res.send("Hub!");
@@ -34,13 +35,14 @@ app.use((req, res, next) => {
     next(error);
 })
 
-app.use((error, req, res, next) => {
+/*app.use((error, req, res, next) => {
     res.status(error.status || 500);
     res.json({
         error:{
             message: error.message
         }
     })
-})
+    next();
+})*/
 
 export default app;

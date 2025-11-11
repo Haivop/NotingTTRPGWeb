@@ -1,63 +1,71 @@
 import { GeneralCRUDHandlerModel } from "../model/GeneralCRUDHandlerModel.js";
+import { GeneralModel } from "../model/GeneralModel.js";
 
 export class WorldItemsController{
     #model;
     #modelCRUDHandler;
 
     constructor(model){
-        this.#model = model;
-        this.#modelCRUDHandler = new GeneralCRUDHandlerModel(model);
+        this.#model = model
+        this.#modelCRUDHandler = new GeneralCRUDHandlerModel(this.#model);
     }
 
-    creationPage (req, res) {
+    getCRUDHandler(){
+        return this.#modelCRUDHandler;
+    };
+
+    async creationPage (req, res) {
         res.status(200).json({
             message: `${this.#model.name} creation page`
         });
-    }
+    };
 
-    itemPage (req, res) {
-        const { worldId, id } = req.params;
+    async itemPage (req, res) {
+        const id = req.params[Object.keys(req.params)[1]];
+        const item = await this.#modelCRUDHandler.getById(id);
         res.status(200).json({
             itemType: this.#model.name,
-            item: this.#modelCRUDHandler.getById(id, worldId)
+            item
         });
-    }
+    };
 
-    edittingPage(req, res) {
-        const { worldId, id } = req.params;
+    async edittingPage(req, res) {
+        const id = req.params[Object.keys(req.params)[1]];
+        const currentItemData = await this.#modelCRUDHandler.getById(id);
         res.status(200).json({
             message: `${this.#model.name} edit page`,
-            currentItemData: modelCRUDHandler.getById(id, worldId)
+            currentItemData
         });
-    }
+    };
 
-    createItem (req, res) {
+    async createItem (req, res) {
         const creationData = req.body;
-        creationData.world_id = { worldId } = req.params;
+        creationData.world_id = req.params.worldId;
     
-        this.#modelCRUDHandler.create(creationData);
+        await this.#modelCRUDHandler.create(creationData);
         res.status(201).json({
             message: `${this.#model.name} created`,
             created: creationData
         });
-    }
+    };
 
-    updateItem (req, res) {
-        const { worldId, id } = req.params;
+    async updateItem (req, res) {
+        const id = req.params[Object.keys(req.params)[1]];
         const newData = req.body;
 
-        this.#model.update(id, newData);
-
+        await this.#modelCRUDHandler.update(id, newData);
         res.status(200).json({
             message: `${this.#model.name} data upadated`,
-            updatedData : this.#model.getById(id, worldId)
+            updatedData : await this.#modelCRUDHandler.getById(id)
         });
-    }
+    };
 
-    deleteItem (req, res) {
-        this.#model.delete(req.params.id);
+    async deleteItem (req, res) {
+        const id = req.params[Object.keys(req.params)[1]];
+
+        this.#modelCRUDHandler.delete(id);
         res.status(200).json({
             message: `${this.#model.name} deleted`
         });
-    }
+    };
 }

@@ -6,17 +6,18 @@ import { GeneralModel } from "../../model/GeneralModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const quest = Router({ mergeParams: true });
-const questModel = new GeneralModel(db_connection, "Quests").init();
-const questController = new WorldItemsController(questModel);
+const questModel = new GeneralModel(db_connection, "Quests");
+questModel.init();
+export const questController = new WorldItemsController(questModel);
+
+quest.get("/:questId/edit", /*checkAuth, isCoAuthorOrOwner,*/ questController.edittingPage.bind(questController));
+
+quest.get("/create", /*checkAuth, isCoAuthorOrOwner,*/ questController.creationPage.bind(questController));
+quest.post("/create", /*checkAuth, isCoAuthorOrOwner,*/ questController.createItem.bind(questController));
 
 quest.route("/:questId")
-    .get(questController.itemPage)
-    .patch(checkAuth, isCoAuthorOrOwner, questController.updateItem) // edit
-    .delete(checkAuth, isCoAuthorOrOwner, questController.deleteItem); // delete
-
-quest.get("/:questId/edit", checkAuth, isCoAuthorOrOwner, questController.edittingPage);
-
-quest.get("/create", checkAuth, isCoAuthorOrOwner, questController.creationPage);
-quest.post("/create", checkAuth, isCoAuthorOrOwner, questController.createItem);
+    .get(questController.itemPage.bind(questController))
+    .patch(/*checkAuth, isCoAuthorOrOwner,*/ questController.updateItem.bind(questController)) // edit
+    .delete(/*checkAuth, isCoAuthorOrOwner,*/ questController.deleteItem.bind(questController)); // delete
 
 export default quest;
