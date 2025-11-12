@@ -1,0 +1,14 @@
+# Node modules & Dependencies
+server-side/node_modules/
+server-side/package-lock.json
+
+# Config files
+server-side/config/
+
+# Dev Temp Files
+server-side/src/views/
+
+# DB
+notes_db/
+
+
