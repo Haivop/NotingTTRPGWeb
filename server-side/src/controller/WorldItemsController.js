@@ -1,13 +1,10 @@
-import { GeneralCRUDHandlerModel } from "../model/GeneralCRUDHandlerModel.js";
-import { GeneralModel } from "../model/GeneralModel.js";
-
 export class WorldItemsController{
     #model;
     #modelCRUDHandler;
 
-    constructor(model){
+    constructor(model, CRUDHandler){
         this.#model = model
-        this.#modelCRUDHandler = new GeneralCRUDHandlerModel(this.#model);
+        this.#modelCRUDHandler = CRUDHandler;
     }
 
     getCRUDHandler(){

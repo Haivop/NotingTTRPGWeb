@@ -24,8 +24,6 @@ export class GeneralCRUDHandlerModel{
             data.map_x = null;
             data.map_y = null;
         }
-
-        console.log(this.#model.fieldNames, Object.keys(data));
         
         for(let item of Object.keys(data)){
             if(this.#model.fieldNames.includes(item)) continue;

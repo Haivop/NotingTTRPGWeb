@@ -3,12 +3,13 @@ import { Router } from "express";
 import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth, isCoAuthorOrOwner } from "../../middleware/authMiddleware.js";
 import { GeneralModel } from "../../model/GeneralModel.js";
+import { GeneralCRUDHandlerModel } from "../../model/GeneralCRUDHandlerModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const location = Router({ mergeParams: true });
 const locationModel = new GeneralModel(db_connection, "Locations");
 locationModel.init();
-export const locationController = new WorldItemsController(locationModel);
+export const locationController = new WorldItemsController(locationModel, new GeneralCRUDHandlerModel(locationModel));
 
 location.get("/:locationId/edit", /*checkAuth, isCoAuthorOrOwner,*/ locationController.edittingPage.bind(locationController));
 

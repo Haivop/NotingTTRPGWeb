@@ -3,12 +3,13 @@ import { Router } from "express";
 import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth, isCoAuthorOrOwner } from "../../middleware/authMiddleware.js";
 import { GeneralModel } from "../../model/GeneralModel.js";
+import { GeneralCRUDHandlerModel } from "../../model/GeneralCRUDHandlerModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const quest = Router({ mergeParams: true });
 const questModel = new GeneralModel(db_connection, "Quests");
 questModel.init();
-export const questController = new WorldItemsController(questModel);
+export const questController = new WorldItemsController(questModel, new GeneralCRUDHandlerModel(questModel));
 
 quest.get("/:questId/edit", /*checkAuth, isCoAuthorOrOwner,*/ questController.edittingPage.bind(questController));
 

@@ -3,12 +3,13 @@ import { Router } from "express";
 import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth, isCoAuthorOrOwner } from "../../middleware/authMiddleware.js";
 import { GeneralModel } from "../../model/GeneralModel.js";
+import { GeneralCRUDHandlerModel } from "../../model/GeneralCRUDHandlerModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";;
 
 const character = Router({ mergeParams: true });
 const characterModel = new GeneralModel(db_connection, "Characters");
 characterModel.init();
-export const characterController = new WorldItemsController(characterModel);
+export const characterController = new WorldItemsController(characterModel, new GeneralCRUDHandlerModel(characterModel));
 
 character.get("/:characterId/edit", /*checkAuth, isCoAuthorOrOwner,*/ characterController.edittingPage.bind(characterController));
 

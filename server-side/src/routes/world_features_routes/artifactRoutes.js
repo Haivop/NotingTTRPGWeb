@@ -3,12 +3,13 @@ import { Router } from "express";
 import { db_connection } from "../../db/MySqlDb.js";
 import { checkAuth, isCoAuthorOrOwner } from "../../middleware/authMiddleware.js";
 import { GeneralModel } from "../../model/GeneralModel.js";
+import { GeneralCRUDHandlerModel } from "../../model/GeneralCRUDHandlerModel.js";
 import { WorldItemsController } from "../../controller/WorldItemsController.js";
 
 const artifact = Router({ mergeParams: true });
-const artifactModel = new GeneralModel(db_connection, "Artifacts");
+const artifactModel = new GeneralModel(db_connection, "Artifacts"); 
 artifactModel.init();
-export const artifactController = new WorldItemsController(artifactModel);
+export const artifactController = new WorldItemsController(artifactModel, new GeneralCRUDHandlerModel(artifactModel));
 
 artifact.get("/:artifactId/edit", checkAuth, isCoAuthorOrOwner, artifactController.edittingPage.bind(artifactController));
 
