@@ -1,4 +1,4 @@
-import { WorldModel } from "../model/worldModel.js";
+import { WorldModel } from "../model/WorldCRUDModel.js";
 import { artifactController } from "../routes/world_features_routes/artifactRoutes.js";
 import { characterController } from "../routes/world_features_routes/characterRoutes.js";
 import { eventController } from "../routes/world_features_routes/eventRoutes.js";
@@ -36,13 +36,16 @@ export class WorldController{
 
     static async update (req, res) {
         const worldId = req.params.worldId;
-        const {title, description, is_public, map_url} = req.body;
+        const { title, description, is_public, map_url, tags, coAuthors } = req.body;
 
-        await WorldModel.update(worldId, {title, description, is_public, map_url});
+        await WorldModel.update(worldId, {title, description, is_public, map_url}, coAuthors, tags);
+
         const updatedData = await WorldModel.getById(worldId);
+        updatedData.coAuthors = await WorldModel.getCoAuthors(worldId);
+        updatedData.tags = await WorldModel.getTags(worldId);
 
         res.status(200).json({
-            message: "world data upadated",
+            message: "world data updated",
             updatedData
         });
     };
@@ -71,5 +74,27 @@ export class WorldController{
                 coAuthors
             } 
         });
+    }
+
+    static async mapPage(req, res){
+        const locations = locationController.getCRUDHandler().getAll(worldId);
+        for(let location of locations){
+            if(location.type === "Location") continue;
+            delete locations[locations.indexOf(location)];
+        }
+        res.status(200).json({
+            message: "World Map",
+            locations
+        })
+    }
+
+    static async hub(req, res){
+        const userWorlds = WorldModel.getByUser(req.user.id);
+        const publicWorlds = WorldModel.getAllPublic();
+
+        res.status(200).json({
+            userWorlds,
+            publicWorlds
+        })
     }
 }

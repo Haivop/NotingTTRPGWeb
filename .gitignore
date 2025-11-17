@@ -8,7 +8,4 @@ server-side/config/
 # Dev Temp Files
 server-side/src/views/
 
-# DB
-notes_db/
-
 

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import { UserModel } from "../model/userModel.js";
+import { UserModel } from "../model/UserCRUDModel.js";
 
 export class UserController {
     static async signUpHandler (req, res) {

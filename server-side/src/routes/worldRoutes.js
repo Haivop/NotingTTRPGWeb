@@ -23,7 +23,7 @@ world.use("/:worldId/location", location);
 world.route("/:worldId/edit")
     .get(/* checkAuth, isOwner,*/ WorldController.edditingPage);
 
-world.get("/:worldId/map", (req, res) => {}); 
+world.get("/:worldId/map", WorldController.mapPage); 
 
 world.route("/:worldId")
     .get(WorldController.mainPage)
