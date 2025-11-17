@@ -89,8 +89,10 @@ export class WorldController{
     }
 
     static async hub(req, res){
-        const userWorlds = WorldModel.getByUser(req.user.id);
-        const publicWorlds = WorldModel.getAllPublic();
+        let userWorlds = [];
+        
+        if(!(req.user == undefined)) userWorlds = WorldModel.getByUser(req.user.id);
+        const publicWorlds = await WorldModel.getAllPublic();
 
         res.status(200).json({
             userWorlds,
