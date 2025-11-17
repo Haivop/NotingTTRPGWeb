@@ -27,11 +27,10 @@ world.get("/:worldId/map", WorldController.mapPage);
 
 world.route("/:worldId")
     .get(WorldController.mainPage)
+    .post(checkAuth, WorldController.create)
     .patch(/* checkAuth, isOwner,*/  WorldController.update)
     .delete(/* checkAuth, isOwner,*/  WorldController.delete);
 
-world.route("/create")
-    .get(/*checkAuth,*/ WorldController.creationPage)
-    .post(checkAuth, WorldController.create);
+world.get("/create", /*checkAuth,*/ WorldController.creationPage);
 
 export default world;

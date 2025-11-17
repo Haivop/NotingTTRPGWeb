@@ -77,11 +77,11 @@ export class WorldController{
     }
 
     static async mapPage(req, res){
-        const locations = locationController.getCRUDHandler().getAll(worldId);
-        for(let location of locations){
-            if(location.type === "Location") continue;
-            delete locations[locations.indexOf(location)];
-        }
+        const { worldId } = req.params;
+        let locations = await locationController.getCRUDHandler().getAll(worldId);
+
+        if(locations != []) locations = locations.filter((location) => {location.type === "Location"});
+        
         res.status(200).json({
             message: "World Map",
             locations
