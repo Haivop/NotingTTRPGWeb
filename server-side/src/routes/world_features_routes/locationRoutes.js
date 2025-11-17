@@ -14,10 +14,10 @@ export const locationController = new WorldItemsController(locationModel, new Ge
 location.get("/:locationId/edit", /*checkAuth, isCoAuthorOrOwner,*/ locationController.edittingPage.bind(locationController));
 
 location.get("/create", /*checkAuth, isCoAuthorOrOwner,*/ locationController.creationPage.bind(locationController));
-location.post("/create", /*checkAuth, isCoAuthorOrOwner,*/ locationController.createItem.bind(locationController));
 
 location.route("/:locationId")
     .get(locationController.itemPage.bind(locationController))
+    .post(/*checkAuth, isCoAuthorOrOwner,*/ locationController.createItem.bind(locationController))
     .patch(/*checkAuth, isCoAuthorOrOwner,*/ locationController.updateItem.bind(locationController)) // edit
     .delete(/*checkAuth, isCoAuthorOrOwner,*/ locationController.deleteItem.bind(locationController)); // delete
 

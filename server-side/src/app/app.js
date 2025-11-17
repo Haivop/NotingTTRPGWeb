@@ -5,6 +5,7 @@ import cors from "cors";
 import world from "../routes/worldRoutes.js";
 import user from "../routes/userRoutes.js";
 import { search } from "../middleware/searchMiddleware.js";
+import { WorldController } from "../controller/WorldController.js";
 
 const app = express();
 
@@ -16,9 +17,7 @@ app.use(cors());
 app.use("/world", world);
 app.use("/user", user);
 
-app.get("/", (req, res) => {
-    res.send("Hub!");
-});
+app.get("/", WorldController.hub);
 
 app.get("/search", search);
 
