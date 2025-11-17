@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { loadEnvFile } from 'node:process';
-import { WorldModel } from "../model/worldModel.js";
+import { WorldModel } from "../model/WorldCRUDModel.js";
 
 loadEnvFile("./config/.env");
 
