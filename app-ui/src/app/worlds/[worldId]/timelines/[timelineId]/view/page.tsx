@@ -54,8 +54,8 @@ export default function TimelineViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{timeline.name}</h1>
         <p className="text-sm text-white/65">
-          Guests receive a locked snapshot of this era. Switch roles to edit the
-          chronology.
+          Only the world owner or invited co-authors can edit this chronology. Sign in
+          to collaborate.
         </p>
       </header>
 
@@ -74,4 +74,3 @@ export default function TimelineViewPage() {
     </PageContainer>
   );
 }
-

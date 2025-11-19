@@ -53,8 +53,8 @@ export default function FactionViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{faction.name}</h1>
         <p className="text-sm text-white/65">
-          Guests can inspect the faction profile with inputs locked. Switch
-          roles to update charters and rosters.
+          Guests can inspect the faction profile with inputs locked. Owners and
+          co-authors can update charters and rosters.
         </p>
       </header>
 
@@ -73,4 +73,3 @@ export default function FactionViewPage() {
     </PageContainer>
   );
 }
-

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { useAuth } from "./AuthContext";
-import { Role } from "@/lib/types";
 
 const navLinks = [
   { href: "/search", label: "Search" },
@@ -17,7 +16,7 @@ export interface SiteHeaderProps {
 }
 
 export function SiteHeader({ cta, className }: SiteHeaderProps) {
-  const { isLoggedIn, role, switchRole } = useAuth();
+  const { isLoggedIn, user, logout } = useAuth();
 
   const getDestinationHref = (originalHref: string) => {
     if (!isLoggedIn && originalHref !== "/") {
@@ -59,17 +58,9 @@ export function SiteHeader({ cta, className }: SiteHeaderProps) {
               </Link>
             ))}
           </nav>
-          {isLoggedIn && (
-            <div className="relative">
-              <select
-                value={role || ""}
-                onChange={(e) => switchRole(e.target.value as Role)}
-                className="rounded-md bg-gray-800 px-3 py-2 text-white"
-              >
-                <option value="Author">Author</option>
-                <option value="Co-Author">Co-Author</option>
-                <option value="Guest">Guest</option>
-              </select>
+          {isLoggedIn && user && (
+            <div className="hidden text-sm text-white/70 md:block">
+              Signed in as <span className="font-semibold text-white">{user.username}</span>
             </div>
           )}
           <Link
@@ -78,6 +69,24 @@ export function SiteHeader({ cta, className }: SiteHeaderProps) {
           >
             New World
           </Link>
+          <div className="hidden md:flex">
+            {isLoggedIn ? (
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-white/40 hover:text-white"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-white/40 hover:text-white"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
           <div className="md:hidden">
             <MenuIcon />
           </div>

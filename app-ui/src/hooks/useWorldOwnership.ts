@@ -3,16 +3,16 @@
 
 import { useAuth } from "@/components/layout/AuthContext";
 import { getWorldById } from "@/lib/world-data";
-import { User, WorldEntity } from "@/lib/types";
+import { WorldEntity } from "@/lib/types";
 import { useState, useEffect } from "react";
 
 export function useWorldOwnership(worldId: string) {
   const { user, isLoggedIn } = useAuth();
   const [isOwner, setIsOwner] = useState(false);
-  const [isLoadingOwner, setIsLoadingOwner] = useState(true); // ✅ Початковий стан: true
+  const [isLoadingOwner, setIsLoadingOwner] = useState(true);
 
   useEffect(() => {
-    let isMounted = true; // 1. ПЕРЕВІРКА ВИХОДУ/НЕПОВНОГО СТАНУ
+    let isMounted = true;
 
     if (!worldId || !isLoggedIn || !user) {
       setIsOwner(false);
@@ -20,19 +20,10 @@ export function useWorldOwnership(worldId: string) {
       return;
     }
 
-    // 2. ❌ ВИДАЛЯЄМО: setIsLoadingOwner(true);
-    //    Це не потрібно, якщо це не другий/третій виклик.
-
-    // 💡 Тимчасово встановлюємо Loading, якщо це не перше завантаження
-    //    (Це допомагає уникнути попередження)
-    if (!isLoadingOwner) {
-      setIsLoadingOwner(true);
-    }
-
+    setIsLoadingOwner(true);
     getWorldById(worldId)
       .then((worldData: WorldEntity | null) => {
-        // 💡 Додамо тип для worldData
-        if (!isMounted) return; // 🏆 ОСНОВНА ПЕРЕВІРКА
+        if (!isMounted) return;
 
         const isMatch = worldData?.authorId === user.id;
         setIsOwner(isMatch);
@@ -47,11 +38,10 @@ export function useWorldOwnership(worldId: string) {
         }
       });
 
-    // 3. ФУНКЦІЯ ОЧИЩЕННЯ
     return () => {
       isMounted = false;
     };
-  }, [worldId, isLoggedIn, user?.id]);
+  }, [worldId, isLoggedIn, user]);
 
   return { isOwner, isLoadingOwner };
 }

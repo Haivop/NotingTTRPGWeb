@@ -54,8 +54,8 @@ export default function ArtifactViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{artifact.name}</h1>
         <p className="text-sm text-white/65">
-          Guests can review artifact metadata in a locked state. Switch roles to
-          amend lore or stewardship.
+          Guests can review artifact metadata in a locked state. Owners and invited
+          co-authors can amend lore or stewardship.
         </p>
       </header>
 
@@ -74,4 +74,3 @@ export default function ArtifactViewPage() {
     </PageContainer>
   );
 }
-

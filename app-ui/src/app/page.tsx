@@ -3,62 +3,31 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Pill } from "@/components/ui/Pill";
 import { buttonClasses } from "@/components/ui/Button";
+import { getHomeDiscoveryData } from "@/lib/discovery-api";
 
-const features = [
-  {
-    title: "Lore Atlas",
-    description:
-      "Map continents, regions, and locations with layered notes, pins, and history trails.",
-  },
-  {
-    title: "Character Chronicles",
-    description:
-      "Track factions, relationships, and arcs across your saga with timeline waypoints.",
-  },
-  {
-    title: "Quest Loom",
-    description:
-      "Spin objectives, rewards, and branching decisions that evolve as your world does.",
-  },
-];
-
-const communityWorlds = [
-  {
-    name: "Elarian Skies",
-    summary: "Floating isles, crystal storms, and sky-bound guilds.",
-  },
-  {
-    name: "Dawnsong Reach",
-    summary: "Ancient forests humming with spirits of forgotten heroes.",
-  },
-  {
-    name: "The Gilded Dunes",
-    summary: "Shifting sands guarding the relics of a fallen solar empire.",
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  const { hero, features, spotlightWorlds } = await getHomeDiscoveryData();
   return (
     <>
       <section className="py-10">
         <PageContainer className="flex flex-col items-center text-center">
-          <Pill label="Fantasy Worldbuilding Suite" className="mb-6" />
+          {hero.eyebrow && <Pill label={hero.eyebrow} className="mb-6" />}
           <h1 className="font-display text-4xl tracking-[0.4em] text-purple-50 md:text-5xl">
-            Forge Your Worlds
+            {hero.title}
           </h1>
-          <p className="mt-4 max-w-3xl text-lg text-white/70">
-            Give your imagination a gallery worthy of its legends. Sketch maps,
-            bind lore, choreograph quests, and invite co-authors—all within a
-            luminous atelier made for TTRPG storytellers.
-          </p>
+          <p className="mt-4 max-w-3xl text-lg text-white/70">{hero.description}</p>
 
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
-            <Link href="/worlds/create" className={buttonClasses("primary")}>
-              Begin a New World
-            </Link>
-            <Link href="/hub" className={buttonClasses("ghost")}>
-              Explore the Hub
-            </Link>
+            {hero.primaryCta && (
+              <Link href={hero.primaryCta.href} className={buttonClasses("primary")}>
+                {hero.primaryCta.label}
+              </Link>
+            )}
+            {hero.secondaryCta && (
+              <Link href={hero.secondaryCta.href} className={buttonClasses("ghost")}>
+                {hero.secondaryCta.label}
+              </Link>
+            )}
           </div>
         </PageContainer>
       </section>
@@ -86,9 +55,9 @@ export default function Home() {
             className="relative overflow-hidden"
           >
             <div className="grid gap-6 md:grid-cols-3">
-              {communityWorlds.map((world) => (
+              {spotlightWorlds.map((world) => (
                 <article
-                  key={world.name}
+                  key={world.id}
                   className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 text-left"
                 >
                   <div className="mb-6 h-28 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,rgba(192,132,252,0.35),transparent_70%)]" />
@@ -97,7 +66,7 @@ export default function Home() {
                   </h3>
                   <p className="mt-3 text-sm text-white/65">{world.summary}</p>
                   <Link
-                    href="/hub"
+                    href={`/worlds/${world.id}`}
                     className="mt-4 inline-flex items-center text-xs font-semibold uppercase tracking-[0.22em] text-purple-200 hover:text-purple-50"
                   >
                     Read more →

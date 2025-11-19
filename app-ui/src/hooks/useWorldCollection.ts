@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAllWorlds, WorldEntity } from "@/lib/world-data";
+import { getMyWorlds, WorldEntity } from "@/lib/world-data";
 
 export function useWorldCollection() {
   const [worlds, setWorlds] = useState<WorldEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getAllWorlds()
+    getMyWorlds()
       .then((data) => {
         setWorlds(data);
       })

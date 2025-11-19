@@ -1,6 +1,7 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
-import { saveNewItem, ItemFormData } from "@/lib/world-data";
+import { saveNewItem } from "@/lib/world-data";
+import { ItemFormData } from "@/lib/types";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";

@@ -56,8 +56,8 @@ export default function CharacterViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{character.name}</h1>
         <p className="text-sm text-white/65">
-          Fields below are read-only. Switch to Author or Co-Author role to edit
-          this profile.
+          Fields below are read-only unless the world owner grants you editing
+          rights. Sign in to request co-author access.
         </p>
       </header>
 
@@ -76,4 +76,3 @@ export default function CharacterViewPage() {
     </PageContainer>
   );
 }
-

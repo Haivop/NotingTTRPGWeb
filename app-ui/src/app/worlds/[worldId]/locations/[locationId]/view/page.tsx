@@ -55,8 +55,8 @@ export default function LocationViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{location.name}</h1>
         <p className="text-sm text-white/65">
-          Guests browse immutable lore only. Authoring roles unlock editable
-          controls for this location.
+          Guests browse immutable lore only. Editable controls unlock once the owner
+          invites you as a co-author.
         </p>
       </header>
 
@@ -75,4 +75,3 @@ export default function LocationViewPage() {
     </PageContainer>
   );
 }
-

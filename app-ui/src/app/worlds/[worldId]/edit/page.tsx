@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getWorldById, updateWorldMetadata } from "@/lib/world-data";
+import { getWorldById, updateWorldMetadata, deleteWorld } from "@/lib/world-data";
 import { WorldEntity } from "@/lib/types";
-import { createNewWorld, deleteWorld } from "@/lib/world-data";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";

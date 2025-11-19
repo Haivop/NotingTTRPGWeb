@@ -56,8 +56,8 @@ export default function QuestViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{quest.name}</h1>
         <p className="text-sm text-white/65">
-          This quest sheet is view-only for Guests. Switch roles to modify
-          objectives or progress.
+          This quest sheet is view-only unless the world owner grants you co-author
+          access. Sign in to collaborate.
         </p>
       </header>
 
@@ -76,4 +76,3 @@ export default function QuestViewPage() {
     </PageContainer>
   );
 }
-

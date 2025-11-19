@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
 import { ItemFormData, WorldItem, ArtifactItem } from "@/lib/types";
+import { useFactionOptions } from "@/hooks/useFactionOptions";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -26,6 +27,7 @@ export default function EditArtifactPage({
   const routeParams = useParams();
   const worldId = routeParams.worldId as string;
   const artifactId = routeParams.artifactId as string;
+  const factionOptions = useFactionOptions(worldId);
 
   const [artifactData, setArtifactData] = useState<ArtifactItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -167,14 +169,16 @@ export default function EditArtifactPage({
                 </label>
                 <Select
                   defaultValue={
-                    artifactData.in_possession_of || "skybound-covenant"
+                    artifactData.in_possession_of || factionOptions[0]?.id || "unknown"
                   }
                   className="mt-2"
                   name="in_possession_of"
                 >
-                  <option value="skybound-covenant">Skybound Covenant</option>
-                  <option value="tempest-choir">Tempest Choir</option>
-                  <option value="gilded-empire">Gilded Empire</option>
+                  {factionOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>

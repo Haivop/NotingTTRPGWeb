@@ -1,9 +1,38 @@
+"use client";
+
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { FormEvent, useState } from "react";
+import { useAuth } from "@/components/layout/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
+  const { login } = useAuth();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const identifier = (formData.get("identifier") as string) ?? "";
+    const password = (formData.get("password") as string) ?? "";
+
+    try {
+      await login({ identifier, password });
+      router.push("/hub");
+    } catch {
+      setError("Invalid credentials. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <PageContainer className="max-w-5xl">
       <div className="glass-panel grid gap-10 overflow-hidden p-0 md:grid-cols-[1.1fr_1fr]">
@@ -16,8 +45,7 @@ export default function SignInPage() {
               Re-enter the Archive
             </h1>
             <p className="text-sm">
-              Continue scribing legends, sculpting realms, and guiding your
-              table through luminous adventures.
+              Continue scribing legends, sculpting realms, and guiding your table through luminous adventures.
             </p>
           </div>
           <div
@@ -28,42 +56,29 @@ export default function SignInPage() {
 
         <div className="flex flex-col gap-8 p-8 md:p-10">
           <header className="space-y-2">
-            <p className="font-display text-m text-purple-200 text-center">
-              SIGN IN
-            </p>
-            <h2 className="text-2xl font-semibold text-white text-center">
-              Unlock your Codex
-            </h2>
+            <p className="font-display text-m text-purple-200 text-center">SIGN IN</p>
+            <h2 className="text-2xl font-semibold text-white text-center">Unlock your Codex</h2>
           </header>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                Email
-              </label>
-              <Input
-                type="email"
-                placeholder="you@realmkeeper.gg"
-                className="mt-2"
-              />
+              <label className="text-xs uppercase tracking-[0.25em] text-white/50">Email or Username</label>
+              <Input type="text" placeholder="you@realmkeeper.gg" className="mt-2" name="identifier" required />
             </div>
             <div>
               <div className="flex items-center justify-between">
-                <label className="text-xs uppercase tracking-[0.25em] text-white/50">
-                  Password
-                </label>
-                <Link
-                  href="#"
-                  className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200"
-                >
+                <label className="text-xs uppercase tracking-[0.25em] text-white/50">Password</label>
+                <Link href="#" className="text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">
                   Forgot?
                 </Link>
               </div>
-              <Input type="password" placeholder="••••••••" className="mt-2" />
+              <Input type="password" placeholder="••••••••" className="mt-2" name="password" required />
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign In
+            {error && <p className="text-sm text-red-400">{error}</p>}
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </Button>
             <button
               type="button"
@@ -75,10 +90,7 @@ export default function SignInPage() {
 
           <p className="text-sm text-white/60">
             New to Worldcraftery?{" "}
-            <Link
-              href="/worlds/create"
-              className="font-semibold uppercase tracking-[0.2em] text-purple-200"
-            >
+            <Link href="/sign-up" className="font-semibold uppercase tracking-[0.2em] text-purple-200">
               Begin your first world
             </Link>
           </p>

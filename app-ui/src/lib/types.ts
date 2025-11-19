@@ -125,9 +125,16 @@ export interface WorldEntity {
   themes: string;
   starting_region: string;
   visibility: boolean;
+  mapUrl?: string;
+  tags?: string[];
+  coAuthorIds?: string[];
+  updatedAt?: string;
 }
 
 export interface UserEntity {
   id: string;
   username: string;
+  email: string;
+  role?: string;
+  createdAt?: string;
 }

@@ -57,8 +57,8 @@ export default function ContinentViewPage() {
           {continent.name}
         </h1>
         <p className="text-sm text-white/65">
-          Guests can browse immutable data for this continent. Author or
-          Co-Author roles unlock editing.
+          Guests can browse immutable data for this continent. Editing is reserved for
+          the owner and trusted co-authors.
         </p>
       </header>
 
@@ -77,4 +77,3 @@ export default function ContinentViewPage() {
     </PageContainer>
   );
 }
-

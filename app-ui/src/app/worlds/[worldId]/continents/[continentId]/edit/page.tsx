@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
 import { ItemFormData, WorldItem, ContinentItem } from "@/lib/types";
+import { useFactionOptions } from "@/hooks/useFactionOptions";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -26,6 +27,7 @@ export default function EditContinentPage({
   const routeParams = useParams();
   const worldId = routeParams.worldId as string;
   const continentId = routeParams.continentId as string;
+  const factionOptions = useFactionOptions(worldId);
 
   const [continentData, setContinentData] = useState<ContinentItem | null>(
     null
@@ -169,13 +171,15 @@ export default function EditContinentPage({
                   Faction
                 </label>
                 <Select
-                  defaultValue={continentData.faction || "skybound-covenant"}
+                  defaultValue={continentData.faction || factionOptions[0]?.id || "unknown"}
                   className="mt-2"
                   name="faction"
                 >
-                  <option value="skybound-covenant">Skybound Covenant</option>
-                  <option value="tempest-choir">Tempest Choir</option>
-                  <option value="gilded-empire">Gilded Empire</option>
+                  {factionOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>

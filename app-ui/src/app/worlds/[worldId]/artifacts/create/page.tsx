@@ -1,6 +1,8 @@
 "use client";
 import { useRouter, useParams } from "next/navigation";
-import { saveNewItem, ItemFormData } from "@/lib/world-data";
+import { saveNewItem } from "@/lib/world-data";
+import { ItemFormData } from "@/lib/types";
+import { useFactionOptions } from "@/hooks/useFactionOptions";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -16,6 +18,7 @@ export default function CreateArtifactPage() {
 
   const params = useParams();
   const worldId = params.worldId as string;
+  const factionOptions = useFactionOptions(worldId);
 
   // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
   const artifactName = "New Artifact";
@@ -93,13 +96,15 @@ export default function CreateArtifactPage() {
                   In possession of
                 </label>
                 <Select
-                  defaultValue="skybound-covenant"
+                  defaultValue={factionOptions[0]?.id ?? "unknown"}
                   className="mt-2"
                   name="in_possession_of"
                 >
-                  <option value="skybound-covenant">Skybound Covenant</option>
-                  <option value="tempest-choir">Tempest Choir</option>
-                  <option value="gilded-empire">Gilded Empire</option>
+                  {factionOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
             </div>

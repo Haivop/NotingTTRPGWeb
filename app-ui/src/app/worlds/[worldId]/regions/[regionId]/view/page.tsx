@@ -55,8 +55,8 @@ export default function RegionViewPage() {
         </p>
         <h1 className="text-3xl font-semibold text-white">{region.name}</h1>
         <p className="text-sm text-white/65">
-          This region dossier is read-only for Guests. Authors and Co-Authors
-          can change these values after switching roles.
+          This region dossier is read-only unless the owner shares edit access. Ask to
+          be added as a co-author to make changes.
         </p>
       </header>
 
@@ -75,4 +75,3 @@ export default function RegionViewPage() {
     </PageContainer>
   );
 }
-

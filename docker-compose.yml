@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: noting
+      POSTGRES_PASSWORD: noting
+      POSTGRES_DB: noting
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./server-side
+    env_file:
+      - ./server-side/.env
+    environment:
+      POSTGRES_HOST: postgres
+    depends_on:
+      - postgres
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server-side:/app
+    command: npm run start:dev
+
+volumes:
+  postgres-data:

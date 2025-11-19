@@ -1,68 +1,90 @@
-// src/lib/auth-api.ts
+'use client';
 
-import { UserEntity } from "./types"; // 👈 Припускаємо, що UserEntity імпортовано з types.ts
+import { apiRequest, ApiError } from './api-client';
+import { UserEntity } from './types';
+import {
+  cacheUser,
+  clearSession,
+  getAccessToken,
+  getCachedUser,
+  getRefreshToken,
+  setSession,
+} from './token-storage';
 
-// --- КОНСТАНТИ ТА ДАНІ ---
-const AUTH_STATUS_KEY = "APP_AUTH_STATUS";
-export const CURRENT_USER_KEY = "CURRENT_USER_ID";
+export type AuthStatus = 'loading' | 'guest' | 'user';
 
-export type AuthStatus = "loading" | "guest" | "user";
-
-const simulateDelay = (ms = 50) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-// Тестові дані користувача
-const TEST_USER_ID = "user-0001";
-const TEST_USER_DATA: UserEntity = {
-  id: TEST_USER_ID,
-  username: "Archivist Test",
-};
-
-// --- 1. ФУНКЦІЇ LOCAL STORAGE ---
-
-function getStoredUserId(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(CURRENT_USER_KEY);
+interface AuthResponse {
+  user: UserEntity;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }
 
-function setStoredUserId(id: string | null): void {
-  if (typeof window !== "undefined") {
-    if (id) {
-      localStorage.setItem(CURRENT_USER_KEY, id);
-    } else {
-      localStorage.removeItem(CURRENT_USER_KEY);
-    }
-  }
+export interface LoginPayload {
+  identifier: string;
+  password: string;
 }
 
-// --- 2. ФУНКЦІЇ API (ПРИВ'ЯЗАНІ ДО LOCAL STORAGE) ---
+export interface RegistrationPayload {
+  username: string;
+  email: string;
+  password: string;
+}
 
-/**
- * Отримує поточний стійкий статус користувача (User Entity).
- */
 export async function getCurrentAuthStatus(): Promise<UserEntity | null> {
-  await simulateDelay();
-  const userId = getStoredUserId();
-
-  if (userId === TEST_USER_ID) {
-    return TEST_USER_DATA;
+  if (!getAccessToken() && !getRefreshToken()) {
+    return null;
   }
-  return null;
+
+  try {
+    const user = await apiRequest<UserEntity>('/auth/me');
+    cacheUser(user);
+    return user;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      clearSession();
+      return null;
+    }
+    const cached = getCachedUser();
+    return cached;
+  }
 }
 
-/**
- * Вхід користувача (Login). Зберігає ID користувача в LS.
- */
-export async function signInUser(): Promise<UserEntity> {
-  await simulateDelay();
-  setStoredUserId(TEST_USER_ID); // ✅ ЗБЕРЕЖЕННЯ ID
-  return TEST_USER_DATA;
+export async function signInUser(payload: LoginPayload): Promise<UserEntity> {
+  const response = await apiRequest<AuthResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    auth: false,
+  });
+  setSession(response.tokens, response.user);
+  cacheUser(response.user);
+  return response.user;
 }
 
-/**
- * Вихід користувача (Logout). Очищає ID у сховищі.
- */
+export async function registerUser(payload: RegistrationPayload): Promise<UserEntity> {
+  const response = await apiRequest<AuthResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    auth: false,
+  });
+  setSession(response.tokens, response.user);
+  cacheUser(response.user);
+  return response.user;
+}
+
 export async function signOutUser(): Promise<void> {
-  await simulateDelay();
-  setStoredUserId(null); // ✅ ОЧИЩЕННЯ ID
+  const refreshToken = getRefreshToken();
+  try {
+    if (refreshToken) {
+      await apiRequest('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      });
+    }
+  } catch (error) {
+    console.warn('Failed to revoke refresh token', error);
+  } finally {
+    clearSession();
+  }
 }

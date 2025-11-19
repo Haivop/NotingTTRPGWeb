@@ -7,17 +7,34 @@ import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useState } from "react";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
 
-    await login();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-    router.push("/hub");
+    try {
+      await register({
+        username: (formData.get("username") as string) ?? "",
+        email: (formData.get("email") as string) ?? "",
+        password: (formData.get("password") as string) ?? "",
+      });
+      router.push("/hub");
+    } catch {
+      setError("Unable to create account. Please check your details and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,7 +74,7 @@ export default function SignUpPage() {
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Username
               </label>
-              <Input type="text" placeholder="Creator" className="mt-2" />
+              <Input type="text" placeholder="Creator" className="mt-2" name="username" required />
             </div>
 
             <div>
@@ -68,6 +85,8 @@ export default function SignUpPage() {
                 type="email"
                 placeholder="you@realmkeeper.gg"
                 className="mt-2"
+                name="email"
+                required
               />
             </div>
 
@@ -75,11 +94,13 @@ export default function SignUpPage() {
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Password
               </label>
-              <Input type="password" placeholder="••••••••" className="mt-2" />
+              <Input type="password" placeholder="••••••••" className="mt-2" name="password" required />
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign Up
+            {error && <p className="text-sm text-red-400">{error}</p>}
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Signing Up..." : "Sign Up"}
             </Button>
             <button
               type="button"
