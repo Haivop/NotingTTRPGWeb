@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createNewWorld } from "@/lib/world-data";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -8,11 +8,30 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
+import Image from "next/image";
 
 export default function CreateWorldPage() {
   const router = useRouter();
   // Логіка для перемикання видимості (як приклад)
   const [isPublic, setIsPublic] = useState(false);
+
+  // 🆕 Стан для файлу та прев'ю
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // 🆕 Реф для прихованого інпуту
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 🆕 Обробник вибору файлу
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Створюємо тимчасовий URL для показу картинки відразу
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
 
   const handleCreateWorld = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,7 +52,7 @@ export default function CreateWorldPage() {
     };
 
     // 2. Створюємо світ
-    const newWorldId = await createNewWorld(data);
+    const newWorldId = await createNewWorld(data, imageFile);
 
     // 3. Оновлення та перенаправлення
     router.refresh();
@@ -61,15 +80,48 @@ export default function CreateWorldPage() {
               <p className="font-display text-xs text-purple-200/80">
                 WORLD MAP
               </p>
-              <div className="mt-4 flex flex-col items-center justify-center rounded-3xl border border-dashed border-purple-300/40 bg-black/10 p-10 text-center">
-                <div className="mb-4 h-32 w-full rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_65%_15%,rgba(192,132,252,0.35),transparent_55%),radial-gradient(circle_at_30%_80%,rgba(244,114,182,0.25),transparent_60%)]" />
-                <p className="text-sm text-white/60">
-                  Drop an image or{" "}
-                  <span className="text-purple-200">browse your archives</span>
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.24em] text-white/35">
-                  PNG • JPG • SVG • WEBP
-                </p>
+              <div
+                className="relative mt-4 flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-dashed border-purple-300/40 bg-black/10 p-10 text-center transition hover:bg-white/5 cursor-pointer group"
+                onClick={() => fileInputRef.current?.click()} // Клік по діву тригерить інпут
+              >
+                {/* Прихований інпут */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                />
+
+                {previewUrl ? (
+                  // Якщо є прев'ю - показуємо його
+                  <div className="relative h-64 w-full">
+                    <img
+                      src={previewUrl}
+                      alt="Map Preview"
+                      className="h-full w-full object-cover rounded-2xl shadow-lg"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100 rounded-2xl">
+                      <p className="text-xs uppercase tracking-widest text-white font-bold">
+                        Change Image
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  // Якщо немає - показуємо заглушку
+                  <>
+                    <div className="mb-4 h-32 w-full rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_65%_15%,rgba(192,132,252,0.35),transparent_55%),radial-gradient(circle_at_30%_80%,rgba(244,114,182,0.25),transparent_60%)]" />
+                    <p className="text-sm text-white/60">
+                      Drop an image or{" "}
+                      <span className="text-purple-200 underline decoration-dashed underline-offset-4">
+                        browse your archives
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.24em] text-white/35">
+                      PNG • JPG • SVG • WEBP
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

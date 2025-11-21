@@ -23,6 +23,7 @@ const current_user_decorator_1 = require("../common/decorators/current-user.deco
 const world_items_service_1 = require("./items/world-items.service");
 const create_world_item_dto_1 = require("./items/dto/create-world-item.dto");
 const update_world_item_dto_1 = require("./items/dto/update-world-item.dto");
+const platform_express_1 = require("@nestjs/platform-express");
 let WorldsController = class WorldsController {
     constructor(worldsService, worldItemsService) {
         this.worldsService = worldsService;
@@ -43,11 +44,11 @@ let WorldsController = class WorldsController {
     getWorld(worldId, user) {
         return this.worldsService.getWorld(worldId, user === null || user === void 0 ? void 0 : user.sub);
     }
-    createWorld(dto, user) {
-        return this.worldsService.createWorld(user.sub, dto);
+    createWorld(dto, user, image) {
+        return this.worldsService.createWorld(user.sub, dto, image);
     }
-    updateWorld(worldId, dto, user) {
-        return this.worldsService.updateWorld(worldId, user.sub, dto);
+    updateWorld(worldId, dto, user, image) {
+        return this.worldsService.updateWorld(worldId, user.sub, dto, image);
     }
     deleteWorld(worldId, user) {
         return this.worldsService.deleteWorld(worldId, user.sub);
@@ -103,20 +104,24 @@ __decorate([
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('image')),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __param(2, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_world_dto_1.CreateWorldDto, Object]),
+    __metadata("design:paramtypes", [create_world_dto_1.CreateWorldDto, Object, Object]),
     __metadata("design:returntype", void 0)
 ], WorldsController.prototype, "createWorld", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('image')),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __param(3, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_world_dto_1.UpdateWorldDto, Object]),
+    __metadata("design:paramtypes", [String, update_world_dto_1.UpdateWorldDto, Object, Object]),
     __metadata("design:returntype", void 0)
 ], WorldsController.prototype, "updateWorld", null);
 __decorate([

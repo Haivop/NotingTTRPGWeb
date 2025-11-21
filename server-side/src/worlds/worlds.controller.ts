@@ -8,6 +8,8 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { WorldsService } from './worlds.service';
 import { CreateWorldDto } from './dto/create-world.dto';
@@ -19,6 +21,8 @@ import { WorldItemsService } from './items/world-items.service';
 import { CreateWorldItemDto } from './items/dto/create-world-item.dto';
 import { UpdateWorldItemDto } from './items/dto/update-world-item.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
 
 @Controller('worlds')
 export class WorldsController {
@@ -56,18 +60,28 @@ export class WorldsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createWorld(@Body() dto: CreateWorldDto, @CurrentUser() user: JwtPayload) {
-    return this.worldsService.createWorld(user.sub, dto);
+  @UseInterceptors(FileInterceptor('image')) // 'image' має співпадати з formData.append('image', ...) на фронті
+  createWorld(
+    @Body() dto: CreateWorldDto,
+    @CurrentUser() user: JwtPayload,
+    @UploadedFile() image?: Express.Multer.File, // Отримуємо файл
+  ) {
+    // Передаємо файл у сервіс (потрібно буде оновити метод у Service)
+    return this.worldsService.createWorld(user.sub, dto, image);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
+  // Якщо плануєте оновлювати картинку при редагуванні, сюди теж треба додати інтерцептор
+  @UseInterceptors(FileInterceptor('image'))
   updateWorld(
     @Param('id') worldId: string,
     @Body() dto: UpdateWorldDto,
     @CurrentUser() user: JwtPayload,
+    @UploadedFile() image?: Express.Multer.File, // Опціонально нове зображення
   ) {
-    return this.worldsService.updateWorld(worldId, user.sub, dto);
+    // Тут також треба буде оновити сервіс, щоб він приймав файл
+    return this.worldsService.updateWorld(worldId, user.sub, dto, image);
   }
 
   @Delete(':id')
