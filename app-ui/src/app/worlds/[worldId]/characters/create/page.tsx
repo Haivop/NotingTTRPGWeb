@@ -21,6 +21,14 @@ export default function CreateCharacterPage(/* params */) {
   const worldId = params.worldId as string; // Оскільки useParams повертає string | string[]
   const factionOptions = useFactionOptions(worldId);
 
+  const handleCancel = () => {
+    // Варіант 1: Жорстке перенаправлення на сторінку світу (як ти просив)
+    router.push(`/worlds/${worldId}`);
+
+    // Варіант 2 (альтернатива): Повернутися на крок назад в історії браузера
+    // router.back();
+  };
+
   // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
   const characterName = "New Character";
 
@@ -166,7 +174,12 @@ export default function CreateCharacterPage(/* params */) {
               <Button type="submit" className="flex-1">
                 Create Character
               </Button>
-              <Button type="button" variant="danger" className="flex-1">
+              <Button
+                type="button"
+                variant="danger"
+                className="flex-1"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             </div>

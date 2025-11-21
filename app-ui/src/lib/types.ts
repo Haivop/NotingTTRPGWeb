@@ -124,7 +124,7 @@ export interface WorldEntity {
   era: string;
   themes: string;
   starting_region: string;
-  visibility: boolean;
+  isPublic: boolean;
   mapUrl?: string;
   tags?: string[];
   coAuthorIds?: string[];

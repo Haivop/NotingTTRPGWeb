@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 export default function CreateWorldPage() {
   const router = useRouter();
   // Логіка для перемикання видимості (як приклад)
-  const [isPrivate, setIsPrivate] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
 
   const handleCreateWorld = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,16 +23,13 @@ export default function CreateWorldPage() {
     const data = {
       name: (formData.get("name") as string) || "Unnamed Realm",
       description: (formData.get("description") as string) || "",
-
-      // Поля з GlassPanel 1
       type: (formData.get("type") as string) || "",
       era: (formData.get("era") as string) || "",
       themes: (formData.get("themes") as string) || "",
       starting_region: (formData.get("starting_region") as string) || "",
+      contributors: (formData.get("contributors") as string) || "",
 
-      // Поля з GlassPanel 2
-      contributors: (formData.get("contributors") as string) || "", // Збираємо лише одне поле
-      visibility: !isPrivate, // true = Public, false = Private
+      isPublic: isPublic,
     };
 
     // 2. Створюємо світ
@@ -186,18 +183,44 @@ export default function CreateWorldPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div
+              className={`flex items-center justify-between rounded-3xl border p-4 transition-all duration-300 ${
+                isPublic
+                  ? "border-purple-500/30 bg-purple-500/5"
+                  : "border-white/10 bg-white/5"
+              }`}
+            >
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/50">
-                  Visibility
+                  {isPublic ? "Public World" : "Private World"}
                 </p>
                 <p className="mt-1 text-sm text-white/70">
-                  Private &mdash; Only invited collaborators can view.
+                  {isPublic
+                    ? "Visible to everyone in the community."
+                    : "Only invited collaborators can view."}
                 </p>
+                {/* Прихований інпут, якщо потрібно передавати дані стандартним способом форми (не обов'язково, бо ми будуємо JSON вручну, але корисно) */}
+                <input
+                  type="hidden"
+                  name="is_public"
+                  value={isPublic.toString()}
+                />
               </div>
-              <Button type="button" variant="outline" className="min-w-[140px]">
-                Toggle
-              </Button>
+
+              {/* ВЛАСНИЙ SWITCH TOGGLE */}
+              <button
+                type="button"
+                onClick={() => setIsPublic(!isPublic)}
+                className={`relative h-8 w-14 rounded-full border border-white/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${
+                  isPublic ? "bg-purple-500" : "bg-white/10"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 block h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                    isPublic ? "translate-x-6" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
 
             <div className="flex flex-col gap-4 pt-2 sm:flex-row">

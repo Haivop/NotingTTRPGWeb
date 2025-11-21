@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { World } from '../entities/world.entity';
@@ -112,7 +108,10 @@ export class WorldsService {
   }
 
   async updateWorld(worldId: string, userId: string, dto: UpdateWorldDto) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors', 'tags'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors', 'tags'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -150,7 +149,10 @@ export class WorldsService {
   }
 
   async deleteWorld(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -177,7 +179,10 @@ export class WorldsService {
   }
 
   async ensureCanView(worldId: string, userId?: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -188,7 +193,10 @@ export class WorldsService {
   }
 
   async ensureCanEdit(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }

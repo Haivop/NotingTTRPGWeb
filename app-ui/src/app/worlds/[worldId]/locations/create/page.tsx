@@ -24,6 +24,14 @@ export default function CreateLocationPage(/* params */) {
   // 2. ЗАГОЛОВОК: Використовуємо статичний заголовок
   const locationName = "New Location";
 
+  const handleCancel = () => {
+    // Варіант 1: Жорстке перенаправлення на сторінку світу (як ти просив)
+    router.push(`/worlds/${worldId}`);
+
+    // Варіант 2 (альтернатива): Повернутися на крок назад в історії браузера
+    // router.back();
+  };
+
   // --- 1. Обробник надсилання форми ---
   const handleSaveLocation = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -142,7 +150,12 @@ export default function CreateLocationPage(/* params */) {
               <Button type="submit" className="flex-1">
                 Create Location
               </Button>
-              <Button type="button" variant="danger" className="flex-1">
+              <Button
+                type="button"
+                variant="danger"
+                className="flex-1"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             </div>

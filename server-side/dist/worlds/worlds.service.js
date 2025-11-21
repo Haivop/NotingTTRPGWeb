@@ -101,7 +101,10 @@ let WorldsService = class WorldsService {
     }
     async updateWorld(worldId, userId, dto) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
-        const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors', 'tags'] });
+        const world = await this.worldsRepository.findOne({
+            where: { id: worldId },
+            relations: ['coAuthors', 'tags'],
+        });
         if (!world) {
             throw new common_1.NotFoundException('World not found');
         }
@@ -132,7 +135,10 @@ let WorldsService = class WorldsService {
         return this.toResponse(saved);
     }
     async deleteWorld(worldId, userId) {
-        const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+        const world = await this.worldsRepository.findOne({
+            where: { id: worldId },
+            relations: ['coAuthors'],
+        });
         if (!world) {
             throw new common_1.NotFoundException('World not found');
         }
@@ -161,7 +167,10 @@ let WorldsService = class WorldsService {
         return (_a = world.coAuthors) === null || _a === void 0 ? void 0 : _a.some((coAuthor) => coAuthor.id === userId);
     }
     async ensureCanView(worldId, userId) {
-        const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+        const world = await this.worldsRepository.findOne({
+            where: { id: worldId },
+            relations: ['coAuthors'],
+        });
         if (!world) {
             throw new common_1.NotFoundException('World not found');
         }
@@ -171,7 +180,10 @@ let WorldsService = class WorldsService {
         return world;
     }
     async ensureCanEdit(worldId, userId) {
-        const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+        const world = await this.worldsRepository.findOne({
+            where: { id: worldId },
+            relations: ['coAuthors'],
+        });
         if (!world) {
             throw new common_1.NotFoundException('World not found');
         }

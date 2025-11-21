@@ -8,4 +8,6 @@ server-side/config/
 # Dev Temp Files
 server-side/src/views/
 
+server-side/.env
+
 

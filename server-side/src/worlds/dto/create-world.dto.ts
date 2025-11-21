@@ -1,4 +1,5 @@
 import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateWorldDto {
   @IsString()
@@ -34,6 +35,11 @@ export class CreateWorldDto {
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   isPublic?: boolean;
 
   @IsOptional()
