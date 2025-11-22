@@ -75,18 +75,94 @@ export async function saveNewItem(
   return response.id;
 }
 
+// src/lib/world-data.ts
+
+// Тип для обробки існуючих файлів галереї, які потрібно зберегти (імена файлів)
+export interface UpdateItemPayload extends Partial<ItemFormData> {
+  // Поля, які можуть бути у WorldItem, але не завжди є у ItemFormData
+  id?: string;
+  worldId?: string;
+  type?: string;
+
+  existingGalleryImages?: string[];
+}
+
+// src/lib/world-data.ts
+
 export async function updateItem(
   itemId: string,
-  data: Partial<WorldItem>
+  // 1. Приймаємо оновлений тип даних, який включає всі текстові поля
+  data: UpdateItemPayload,
+  // 2. Приймаємо файл обкладинки
+  coverFile?: File | null,
+  // 3. Приймаємо нові файли галереї
+  newGalleryFiles?: File[]
 ): Promise<string> {
-  const payload = buildPayload(data);
+  console.log("--- DEBUG: updateItem RECEIVED DATA ---");
+  console.log(`Artifact ID (itemId): ${itemId}`);
+  console.log("Input Data (Text/Payload):", data);
+  console.log("Cover File:", coverFile?.name || "None");
+  console.log("New Gallery Files Count:", newGalleryFiles?.length || 0);
+  console.log("Existing Gallery Images (to keep):", data.existingGalleryImages);
+  console.log("newGalleryFiles  :", newGalleryFiles);
+  console.log("---------------------------------------");
+
+  // --- Створення FormData ---
+  const formData = new FormData();
+
+  // 1. Обробка текстових полів (Name та Payload)
+  // Тут ми розбираємо всі поля з data.
+
+  // Витягуємо основні поля, які бекенд очікує окремо (якщо є)
+  const {
+    name,
+    // Явно вилучаємо галерею, щоб не потрапила у payload
+    existingGalleryImages,
+    ...restData
+  } = data;
+
+  // Використовуємо buildPayload для обробки решти даних (для вкладеного JSON)
+  const payload = buildPayload(restData as Partial<WorldItem>);
+
+  formData.append("name", name || "Unnamed");
+  formData.append("payload", JSON.stringify(payload));
+
+  // 2. Додавання головного фото
+  if (coverFile) {
+    formData.append("image", coverFile);
+  }
+
+  // 3. Додавання нових файлів галереї
+  if (newGalleryFiles && newGalleryFiles.length > 0) {
+    newGalleryFiles.forEach((file) => {
+      formData.append("galleryImages", file);
+    });
+  }
+
+  // 4. Додавання існуючих імен файлів галереї (для збереження)
+  if (existingGalleryImages && existingGalleryImages.length > 0) {
+    existingGalleryImages.forEach((fileName) => {
+      formData.append("existingGalleryImages", fileName);
+    });
+  }
+
+  console.log("--- DEBUG: FINAL FormData Content ---");
+  for (const pair of formData.entries()) {
+    // Для файлів ви побачите 'File' або '[object File]', що підтверджує їх присутність
+    const value =
+      pair[1] instanceof File
+        ? `File: ${pair[1].name} (${(pair[1].size / 1024).toFixed(2)} KB)`
+        : pair[1];
+    console.log(`${pair[0]}: ${value}`);
+  }
+  console.log("--------------------------------------");
+
+  // --- Відправка запиту ---
   const response = await apiRequest<WorldItem>(`/world-items/${itemId}`, {
     method: "PATCH",
-    body: JSON.stringify({
-      name: data.name,
-      payload,
-    }),
+    body: formData, // Відправляємо FormData
   });
+
   return response.id;
 }
 

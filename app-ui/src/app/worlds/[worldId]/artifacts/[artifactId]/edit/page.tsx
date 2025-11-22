@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getItemById, deleteItem, updateItem } from "@/lib/world-data";
+import {
+  getItemById,
+  deleteItem,
+  updateItem,
+  UpdateItemPayload,
+} from "@/lib/world-data";
 import { ItemFormData, WorldItem, ArtifactItem } from "@/lib/types";
 import { useFactionOptions } from "@/hooks/useFactionOptions";
 
@@ -110,15 +115,21 @@ export default function EditArtifactPage() {
   // ...
 
   // --- Збереження (Стара логіка + нові поля, але без обробки файлів поки що) ---
+  // src/app/worlds/[worldId]/artifacts/[artifactId]/edit/page.tsx
+
   const handleSaveArtifact = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateItemPayload = {
       name: (formData.get("name") as string) || artifactData?.name || "Unnamed",
       in_possession_of: formData.get("in_possession_of") as string,
       description: formData.get("description") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які потрібно зберегти
+      existingGalleryImages: existingGallery,
     };
 
     // 1. 🟢 ЛОГУВАННЯ ФАЙЛІВ (для діагностики)
@@ -128,7 +139,7 @@ export default function EditArtifactPage() {
     console.log("Text Data:", data);
     console.log("----------------------------------");
 
-    // Логування головного фото
+    // Логування головного фото (без змін)
     if (coverFile) {
       console.log(
         `Cover File Selected: ${coverFile.name} (${(
@@ -143,10 +154,7 @@ export default function EditArtifactPage() {
       );
     }
 
-    // Логування галереї
-    // 💡 Примітка: Логуємо або реальні файли (якщо стейт існує), або прев'ю.
-    // Я припускаю, що ви ввели стейт 'newGalleryFiles' для файлів.
-    const newFiles = newGalleryFiles; // Використовуємо стейт
+    const newFiles = newGalleryFiles; // Використовуємо стейт (припускаючи, що ви його оголосили)
 
     if (newFiles.length > 0) {
       console.log(`Gallery Files to Upload (New): ${newFiles.length} files`);
@@ -162,8 +170,15 @@ export default function EditArtifactPage() {
     );
     console.log("----------------------------------");
 
-    // Тут поки старий виклик (без файлів), як ви і просили
-    await updateItem(artifactId, data);
+    // 2. Виклик оновленого методу з усіма аргументами
+    // coverFile та newGalleryFiles передаються окремими аргументами.
+    // existingGalleryImages передається всередині об'єкта data.
+    await updateItem(
+      artifactId,
+      data, // ⬅️ data тепер містить existingGalleryImages
+      coverFile,
+      newGalleryFiles.length > 0 ? newGalleryFiles : undefined
+    );
 
     router.refresh();
     router.push(`/worlds/${worldId}`);
