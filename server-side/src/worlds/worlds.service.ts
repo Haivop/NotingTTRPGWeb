@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { World } from '../entities/world.entity';
@@ -10,6 +6,10 @@ import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
 import { WorldTag } from '../entities/world-tag.entity';
 import { User } from '../entities/user.entity';
+
+import * as fs from 'fs';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WorldsService {
@@ -84,13 +84,20 @@ export class WorldsService {
     return this.toResponse(world);
   }
 
-  async createWorld(ownerId: string, dto: CreateWorldDto) {
+  async createWorld(ownerId: string, dto: CreateWorldDto, imageFile?: Express.Multer.File) {
+    let mapUrl: string | null = dto.mapUrl || null;
+
+    // Якщо файл прийшов - зберігаємо його
+    if (imageFile) {
+      mapUrl = await this.saveFile(imageFile);
+    }
+
     const world = this.worldsRepository.create({
       ownerId,
       owner: { id: ownerId } as User,
       name: dto.name,
       description: dto.description ?? '',
-      mapUrl: dto.mapUrl,
+      mapUrl: mapUrl, // Використовуємо збережений URL або той, що в DTO (якщо текст)
       type: dto.type,
       era: dto.era,
       themes: dto.themes,
@@ -111,8 +118,17 @@ export class WorldsService {
     return this.toResponse(saved);
   }
 
-  async updateWorld(worldId: string, userId: string, dto: UpdateWorldDto) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors', 'tags'] });
+  // 👇 ОНОВЛЕНИЙ UPDATE
+  async updateWorld(
+    worldId: string,
+    userId: string,
+    dto: UpdateWorldDto,
+    imageFile?: Express.Multer.File,
+  ) {
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors', 'tags'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -121,10 +137,19 @@ export class WorldsService {
       throw new ForbiddenException('You are not allowed to update this world');
     }
 
+    // Якщо прийшов новий файл - зберігаємо і оновлюємо URL
+    if (imageFile) {
+      const fileName = await this.saveFile(imageFile);
+      world.mapUrl = fileName;
+      // (Опціонально) тут можна видалити старий файл, якщо він був
+    } else if (dto.mapUrl !== undefined) {
+      // Якщо файлу немає, але в DTO прийшов mapUrl (наприклад, null щоб видалити карту)
+      world.mapUrl = dto.mapUrl;
+    }
+
     Object.assign(world, {
       name: dto.name ?? world.name,
       description: dto.description ?? world.description,
-      mapUrl: dto.mapUrl ?? world.mapUrl,
       type: dto.type ?? world.type,
       era: dto.era ?? world.era,
       themes: dto.themes ?? world.themes,
@@ -150,7 +175,10 @@ export class WorldsService {
   }
 
   async deleteWorld(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -177,7 +205,10 @@ export class WorldsService {
   }
 
   async ensureCanView(worldId: string, userId?: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -188,7 +219,10 @@ export class WorldsService {
   }
 
   async ensureCanEdit(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -224,5 +258,28 @@ export class WorldsService {
       coAuthorIds: world.coAuthors?.map((user) => user.id) ?? [],
       updatedAt: world.updatedAt,
     };
+  }
+
+  private async saveFile(file: Express.Multer.File): Promise<string> {
+    // 1. Визначаємо шлях до папки uploads (корінь проєкту/uploads)
+    const uploadDir = path.resolve(__dirname, '..', '..', 'uploads');
+
+    // 2. Створюємо папку, якщо її немає
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // 3. Генеруємо унікальне ім'я (uuid + розширення файлу)
+    // Наприклад: 550e8400-e29b-41d4-a716-446655440000.png
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${uuidv4()}${fileExt}`;
+    const filePath = path.join(uploadDir, fileName);
+
+    // 4. Записуємо файл на диск
+    fs.writeFileSync(filePath, file.buffer);
+
+    // 5. Повертаємо лише ім'я файлу (або повний URL, залежно від того як ти хочеш віддавати)
+    // Наприклад, якщо ти налаштуєш StaticServe, то клієнт буде брати по http://host/uploads/filename
+    return fileName;
   }
 }

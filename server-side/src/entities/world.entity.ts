@@ -40,8 +40,8 @@ export class World {
   @Column({ name: 'starting_region', nullable: true })
   startingRegion?: string;
 
-  @Column({ nullable: true })
-  contributors?: string;
+  @Column('text', { array: true, nullable: true })
+  contributors: string[];
 
   @Column({ name: 'is_public', default: true })
   isPublic: boolean;

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateWorldItemDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class CreateWorldItemDto {
 }
 exports.CreateWorldItemDto = CreateWorldItemDto;
@@ -25,5 +26,16 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsObject)(),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            }
+            catch (e) {
+                return {};
+            }
+        }
+        return value;
+    }),
     __metadata("design:type", Object)
 ], CreateWorldItemDto.prototype, "payload", void 0);

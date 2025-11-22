@@ -42,6 +42,10 @@ let UsersService = class UsersService {
         }
         return user;
     }
+    async checkExistenceByEmail(email) {
+        const user = await this.findByEmail(email);
+        return !!user;
+    }
     async update(id, dto) {
         const user = await this.findById(id);
         if (dto.username && dto.username !== user.username) {
@@ -52,7 +56,9 @@ let UsersService = class UsersService {
             user.username = dto.username;
         }
         if (dto.email && dto.email.toLowerCase() !== user.email.toLowerCase()) {
-            const existing = await this.usersRepository.findOne({ where: { email: dto.email.toLowerCase() } });
+            const existing = await this.usersRepository.findOne({
+                where: { email: dto.email.toLowerCase() },
+            });
             if (existing) {
                 throw new common_1.BadRequestException('Email already in use');
             }

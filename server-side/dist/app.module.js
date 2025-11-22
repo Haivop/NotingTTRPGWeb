@@ -19,6 +19,8 @@ const users_module_1 = require("./users/users.module");
 const worlds_module_1 = require("./worlds/worlds.module");
 const tokens_module_1 = require("./tokens/tokens.module");
 const discovery_module_1 = require("./discovery/discovery.module");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,6 +30,10 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 load: [configuration_1.default],
+            }),
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
             }),
             typeorm_1.TypeOrmModule.forRootAsync({
                 inject: [config_1.ConfigService],

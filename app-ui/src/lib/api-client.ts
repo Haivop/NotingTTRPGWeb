@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import { cacheUser, clearSession, getAccessToken, getRefreshToken, setSession } from './token-storage';
-import { UserEntity } from './types';
+import {
+  cacheUser,
+  clearSession,
+  getAccessToken,
+  getRefreshToken,
+  setSession,
+} from "./token-storage";
+import { UserEntity } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4001/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
 
 export class ApiError extends Error {
   status: number;
@@ -24,8 +31,8 @@ async function refreshAccessToken() {
 
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
     });
 
@@ -35,14 +42,17 @@ async function refreshAccessToken() {
       return false;
     }
 
-    const { tokens, user } = data as { tokens: { accessToken: string; refreshToken: string }; user: UserEntity };
+    const { tokens, user } = data as {
+      tokens: { accessToken: string; refreshToken: string };
+      user: UserEntity;
+    };
     setSession(tokens, user);
     if (user) {
       cacheUser(user);
     }
     return true;
   } catch (error) {
-    console.error('Failed to refresh access token', error);
+    console.error("Failed to refresh access token", error);
     clearSession();
     return false;
   }
@@ -54,22 +64,34 @@ async function safeParse(response: Response) {
   try {
     return JSON.parse(text);
   } catch (error) {
-    console.error('Failed to parse response', error);
+    console.error("Failed to parse response", error);
     return null;
   }
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
+export async function apiRequest<T>(
+  path: string,
+  options: RequestOptions = {}
+) {
   const { auth = true, headers, body, ...rest } = options;
   const resolvedHeaders = new Headers(headers ?? {});
 
-  if (body && !resolvedHeaders.has('Content-Type')) {
-    resolvedHeaders.set('Content-Type', 'application/json');
+  // 👇 ВИПРАВЛЕННЯ ТУТ 👇
+  // Ми додаємо 'Content-Type': 'application/json' ТІЛЬКИ якщо:
+  // 1. Є тіло (body)
+  // 2. Заголовок ще не встановлено
+  // 3. Тіло НЕ Є FormData (бо для FormData браузер сам має виставити заголовок з boundary)
+  if (
+    body &&
+    !resolvedHeaders.has("Content-Type") &&
+    !(body instanceof FormData)
+  ) {
+    resolvedHeaders.set("Content-Type", "application/json");
   }
 
   let token = getAccessToken();
   if (auth && token) {
-    resolvedHeaders.set('Authorization', `Bearer ${token}`);
+    resolvedHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   let response = await fetch(`${API_BASE_URL}${path}`, {
@@ -81,9 +103,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
   if (response.status === 401 && auth && (await refreshAccessToken())) {
     token = getAccessToken();
     if (token) {
-      resolvedHeaders.set('Authorization', `Bearer ${token}`);
+      resolvedHeaders.set("Authorization", `Bearer ${token}`);
     } else {
-      resolvedHeaders.delete('Authorization');
+      resolvedHeaders.delete("Authorization");
     }
 
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -95,7 +117,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
 
   const data = await safeParse(response);
   if (!response.ok) {
-    const message = (data as { message?: string })?.message || 'Request failed';
+    const message = (data as { message?: string })?.message || "Request failed";
     throw new ApiError(message, response.status, data);
   }
 

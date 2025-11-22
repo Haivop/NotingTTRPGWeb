@@ -1,4 +1,5 @@
 import { IsObject, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateWorldItemDto {
   @IsString()
@@ -9,5 +10,15 @@ export class CreateWorldItemDto {
 
   @IsOptional()
   @IsObject()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return {};
+      }
+    }
+    return value;
+  })
   payload?: Record<string, any>;
 }

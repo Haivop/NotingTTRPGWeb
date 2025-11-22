@@ -6,6 +6,9 @@ export interface WorldItem {
   type: string; // 'characters', 'quests', 'continents', 'locations', 'factions', etc.
   detail?: string;
 
+  imageUrl?: string; // Головне фото
+  galleryImages?: string[];
+
   // Універсальні поля, які можуть бути у Quest, Character, Artifact
   status?: string;
   hook?: string;
@@ -119,12 +122,12 @@ export interface WorldEntity {
   authorId: string;
   name: string;
   description: string;
-  contributors: string;
+  contributors: string[];
   type: string;
   era: string;
   themes: string;
   starting_region: string;
-  visibility: boolean;
+  isPublic: boolean;
   mapUrl?: string;
   tags?: string[];
   coAuthorIds?: string[];

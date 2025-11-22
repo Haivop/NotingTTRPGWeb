@@ -20,6 +20,7 @@ const worlds_service_1 = require("../worlds.service");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const update_world_item_dto_1 = require("./dto/update-world-item.dto");
 const optional_jwt_auth_guard_1 = require("../../common/guards/optional-jwt-auth.guard");
+const platform_express_1 = require("@nestjs/platform-express");
 let WorldItemsController = class WorldItemsController {
     constructor(worldItemsService, worldsService) {
         this.worldItemsService = worldItemsService;
@@ -30,10 +31,17 @@ let WorldItemsController = class WorldItemsController {
         await this.worldsService.ensureCanView(item.worldId, user === null || user === void 0 ? void 0 : user.sub);
         return this.worldItemsService.toResponse(item);
     }
-    async updateItem(itemId, dto, user) {
+    async updateItem(itemId, files, dto, user) {
+        console.log('=========================================');
+        console.log('[BODY] Received DTO:', dto);
+        console.log('[FILES] Received Files:', files.map((f) => f.fieldname + ':' + f.originalname));
+        console.log('=========================================');
+        const imageFile = files.find((f) => f.fieldname === 'image');
+        const galleryFiles = files.filter((f) => f.fieldname === 'galleryImages');
+        console.log(galleryFiles);
         const item = await this.worldItemsService.getAny(itemId);
         await this.worldsService.ensureCanEdit(item.worldId, user.sub);
-        return this.worldItemsService.update(item.worldId, item.id, dto);
+        return this.worldItemsService.update(item.worldId, item.id, dto, imageFile, galleryFiles);
     }
     async deleteItem(itemId, user) {
         const item = await this.worldItemsService.getAny(itemId);
@@ -54,11 +62,17 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':itemId'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseInterceptors)((0, platform_express_1.AnyFilesInterceptor)()),
     __param(0, (0, common_1.Param)('itemId')),
-    __param(1, (0, common_1.Body)()),
-    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.UploadedFiles)()),
+    __param(2, (0, common_1.Body)(new common_1.ValidationPipe({
+        forbidNonWhitelisted: false,
+        whitelist: true,
+    }))),
+    __param(3, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_world_item_dto_1.UpdateWorldItemDto, Object]),
+    __metadata("design:paramtypes", [String, Array,
+        update_world_item_dto_1.UpdateWorldItemDto, Object]),
     __metadata("design:returntype", Promise)
 ], WorldItemsController.prototype, "updateItem", null);
 __decorate([
