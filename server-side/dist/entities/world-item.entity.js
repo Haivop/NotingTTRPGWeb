@@ -37,6 +37,14 @@ __decorate([
     __metadata("design:type", String)
 ], WorldItem.prototype, "name", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'image_url', nullable: true }),
+    __metadata("design:type", String)
+], WorldItem.prototype, "imageUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)('simple-array', { name: 'gallery_images', nullable: true }),
+    __metadata("design:type", Array)
+], WorldItem.prototype, "galleryImages", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'jsonb', default: () => "'{}'" }),
     __metadata("design:type", Object)
 ], WorldItem.prototype, "payload", void 0);

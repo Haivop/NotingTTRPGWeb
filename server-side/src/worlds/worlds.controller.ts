@@ -23,6 +23,8 @@ import { UpdateWorldItemDto } from './items/dto/update-world-item.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express'; // ⚠️ Новий імпорт
+import { UploadedFiles } from '@nestjs/common';
 
 @Controller('worlds')
 export class WorldsController {
@@ -114,13 +116,28 @@ export class WorldsController {
 
   @Post(':id/items')
   @UseGuards(JwtAuthGuard)
+  // 👇 Змінюємо інтерцептор, щоб приймати 'image' (1 шт) та 'gallery' (багато)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'gallery', maxCount: 10 },
+    ]),
+  )
   async createItem(
     @Param('id') worldId: string,
     @Body() dto: CreateWorldItemDto,
     @CurrentUser() user: JwtPayload,
+    // 👇 Отримуємо об'єкт файлів
+    @UploadedFiles() files: { image?: Express.Multer.File[]; gallery?: Express.Multer.File[] },
   ) {
     await this.worldsService.ensureCanEdit(worldId, user.sub);
-    return this.worldItemsService.create(worldId, dto);
+
+    // Витягуємо файли (безпечна перевірка)
+    const mainImage = files?.image?.[0];
+    const galleryImages = files?.gallery;
+
+    // Передаємо в сервіс
+    return this.worldItemsService.create(worldId, dto, mainImage, galleryImages);
   }
 
   @Patch(':id/items/:itemId')

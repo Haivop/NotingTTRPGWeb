@@ -1,7 +1,7 @@
 "use client";
 
 import { apiRequest } from "./api-client";
-import { WorldEntity, WorldItem } from "./types";
+import { ItemFormData, WorldEntity, WorldItem } from "./types";
 
 export type { WorldEntity, WorldItem, ItemFormData } from "./types";
 
@@ -31,17 +31,44 @@ export async function getItemById(itemId: string): Promise<WorldItem | null> {
 export async function saveNewItem(
   worldId: string,
   type: string,
-  data: Partial<WorldItem>
+  // 👇 Тип даних: це ОБ'ЄКТ, а не FormData.
+  data: ItemFormData | Partial<WorldItem>,
+  imageFile?: File | null,
+  galleryFiles?: File[]
 ): Promise<string> {
-  const payload = buildPayload(data);
+  const formData = new FormData();
+
+  // 👇 ВИПРАВЛЕННЯ ТУТ:
+  // Ми витягуємо властивість 'name', а решту кладемо в 'rest'
+  const { name, ...rest } = data;
+
+  // Гарантуємо, що name - це рядок (або дефолтне значення)
+  const itemName = name || "Unnamed Item";
+
+  // 1. Додаємо основні поля
+  formData.append("type", type);
+  formData.append("name", itemName);
+
+  // 2. payload - це все, що залишилося (rest)
+  formData.append("payload", JSON.stringify(rest));
+
+  // 3. Головне фото
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  // 4. Галерея
+  if (galleryFiles && galleryFiles.length > 0) {
+    galleryFiles.forEach((file) => {
+      formData.append("gallery", file);
+    });
+  }
+
   const response = await apiRequest<WorldItem>(`/worlds/${worldId}/items`, {
     method: "POST",
-    body: JSON.stringify({
-      type,
-      name: data.name || "Unnamed Item",
-      payload,
-    }),
+    body: formData,
   });
+
   return response.id;
 }
 

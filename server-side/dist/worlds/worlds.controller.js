@@ -24,6 +24,8 @@ const world_items_service_1 = require("./items/world-items.service");
 const create_world_item_dto_1 = require("./items/dto/create-world-item.dto");
 const update_world_item_dto_1 = require("./items/dto/update-world-item.dto");
 const platform_express_1 = require("@nestjs/platform-express");
+const platform_express_2 = require("@nestjs/platform-express");
+const common_2 = require("@nestjs/common");
 let WorldsController = class WorldsController {
     constructor(worldsService, worldItemsService) {
         this.worldsService = worldsService;
@@ -61,9 +63,12 @@ let WorldsController = class WorldsController {
         await this.worldsService.ensureCanView(worldId, user === null || user === void 0 ? void 0 : user.sub);
         return this.worldItemsService.get(worldId, itemId);
     }
-    async createItem(worldId, dto, user) {
+    async createItem(worldId, dto, user, files) {
+        var _a;
         await this.worldsService.ensureCanEdit(worldId, user.sub);
-        return this.worldItemsService.create(worldId, dto);
+        const mainImage = (_a = files === null || files === void 0 ? void 0 : files.image) === null || _a === void 0 ? void 0 : _a[0];
+        const galleryImages = files === null || files === void 0 ? void 0 : files.gallery;
+        return this.worldItemsService.create(worldId, dto, mainImage, galleryImages);
     }
     async updateItem(worldId, itemId, dto, user) {
         await this.worldsService.ensureCanEdit(worldId, user.sub);
@@ -156,11 +161,16 @@ __decorate([
 __decorate([
     (0, common_1.Post)(':id/items'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseInterceptors)((0, platform_express_2.FileFieldsInterceptor)([
+        { name: 'image', maxCount: 1 },
+        { name: 'gallery', maxCount: 10 },
+    ])),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __param(3, (0, common_2.UploadedFiles)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, create_world_item_dto_1.CreateWorldItemDto, Object]),
+    __metadata("design:paramtypes", [String, create_world_item_dto_1.CreateWorldItemDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], WorldsController.prototype, "createItem", null);
 __decorate([
