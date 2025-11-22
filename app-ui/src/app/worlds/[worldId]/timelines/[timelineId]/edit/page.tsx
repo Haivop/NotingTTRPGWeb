@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // 👈 ДОДАНО useState, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
@@ -10,12 +10,14 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "timelines";
+// Створюємо інтерфейс для даних, які відправляються на бекенд,
+// включаючи метадані галереї.
+interface UpdateTimelinePayload extends ItemFormData {
+  existingGalleryImages?: string[];
+}
 
-// Базовий URL для картинок
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
 const IMAGE_BASE_URL = `${API_BASE.replace("/api", "")}/uploads`;
@@ -39,10 +41,10 @@ export default function EditTimelinePage({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [existingGallery, setExistingGallery] = useState<string[]>([]);
-  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // 🟢 Зберігає об'єкти File
   const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
 
-  // --- 1. Асинхронне завантаження даних ---
+  // --- 1. Асинхронне завантаження даних (логіка ініціалізації галереї) ---
   useEffect(() => {
     let isMounted = true;
     if (!timelineId) {
@@ -77,7 +79,7 @@ export default function EditTimelinePage({
     };
   }, [timelineId]);
 
-  // --- UI Обробники (Тільки візуал) ---
+  // --- UI Обробники (ОНОВЛЕНО) ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -86,23 +88,38 @@ export default function EditTimelinePage({
     }
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Зберігає нові файли у стейт newGalleryFiles.
+   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
+
+      // Зберігаємо файли
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+      // Зберігаємо прев'ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
-      // Тут можна зберігати файли в стейт, якщо потрібно для фінального збереження
-      // setNewGalleryFiles((prev) => [...prev, ...files]);
     }
     e.target.value = "";
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Видаляє новий файл та прев'ю.
+   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
-    // setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 2. Обробник надсилання форми ---
+  /**
+   * 🟢 НОВИЙ ОБРОБНИК: Видалення існуючого зображення.
+   */
+  const removeExistingGalleryImage = (fileName: string) => {
+    setExistingGallery((prev) => prev.filter((name) => name !== fileName));
+  };
+
+  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!timelineData) return;
@@ -110,13 +127,26 @@ export default function EditTimelinePage({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateTimelinePayload = {
       name: (formData.get("name") as string) || timelineData.name,
       description: formData.get("description") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися
+      existingGalleryImages: existingGallery,
     };
 
-    // 💡 Виклик updateItem поки що БЕЗ ФАЙЛІВ, але з правильною сигнатурою
-    await updateItem(timelineId, data);
+    // 2. Збір файлів
+    const coverFile = imageFile; // Головне фото зі стейту
+    const newGallery = newGalleryFiles; // Нові файли галереї зі стейту
+
+    // 3. 🟢 Виклик updateItem з усіма аргументами
+    await updateItem(
+      timelineId,
+      data,
+      coverFile,
+      newGallery.length > 0 ? newGallery : undefined
+    );
 
     router.refresh();
     router.push(`/worlds/${worldId}`);
@@ -136,9 +166,9 @@ export default function EditTimelinePage({
       router.refresh();
       router.push(`/worlds/${worldId}`);
     } catch (error) {
-      console.error("Error deleting timeline:", error); // 🆕 Виправлено лог
+      console.error("Error deleting timeline:", error);
       setIsLoading(false);
-      alert("Failed to delete timeline."); // 🆕 Виправлено alert
+      alert("Failed to delete timeline.");
     }
   };
 
@@ -232,6 +262,14 @@ export default function EditTimelinePage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
+                    {/* 🟢 Кнопка видалення для існуючих файлів */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryImage(fileName)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
+                    >
+                      <span>x</span>
+                    </button>
                   </div>
                 ))}
 

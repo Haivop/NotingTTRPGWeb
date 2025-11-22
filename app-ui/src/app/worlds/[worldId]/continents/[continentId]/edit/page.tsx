@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // 👈 ДОДАНО useState, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
@@ -14,12 +14,16 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
+// Створюємо інтерфейс для даних, які відправляються на бекенд,
+// включаючи метадані галереї.
+interface UpdateContinentPayload extends ItemFormData {
+  existingGalleryImages?: string[];
+}
+
 // Базовий URL для картинок
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
 const IMAGE_BASE_URL = `${API_BASE.replace("/api", "")}/uploads`;
-
-const ITEM_TYPE = "continents";
 
 export default function EditContinentPage({
   params,
@@ -38,15 +42,15 @@ export default function EditContinentPage({
   const [isLoading, setIsLoading] = useState(true);
 
   // --- СТАН ДЛЯ МЕДІА ---
-  const [imageFile, setImageFile] = useState<File | null>(null); // Файл для завантаження
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // URL для прев'ю
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [existingGallery, setExistingGallery] = useState<string[]>([]); // З сервера
-  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // Нові файли (для ігнорування)
-  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]); // Прев'ю нових
+  const [existingGallery, setExistingGallery] = useState<string[]>([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
 
-  // --- 1. Асинхронне завантаження даних ---
+  // --- 1. Асинхронне завантаження даних (Без змін) ---
   useEffect(() => {
     let isMounted = true;
     if (!continentId) {
@@ -78,7 +82,7 @@ export default function EditContinentPage({
     };
   }, [continentId]);
 
-  // --- UI Обробники (Тільки візуал) ---
+  // --- UI Обробники (ОНОВЛЕНО) ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -87,22 +91,38 @@ export default function EditContinentPage({
     }
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Зберігає нові файли у стейт newGalleryFiles.
+   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
+
+      // Зберігаємо файли
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+      // Зберігаємо прев'ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
-      // Тут ми не зберігаємо файли в newGalleryFiles, щоб уникнути помилок
-      // з аргументами, поки не оновимо логіку збереження
     }
     e.target.value = "";
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Видаляє новий файл та прев'ю.
+   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 2. Обробник надсилання форми ---
+  /**
+   * 🟢 НОВИЙ ОБРОБНИК: Видалення існуючого зображення.
+   */
+  const removeExistingGalleryImage = (fileName: string) => {
+    setExistingGallery((prev) => prev.filter((name) => name !== fileName));
+  };
+
+  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!continentData) return;
@@ -110,15 +130,28 @@ export default function EditContinentPage({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateContinentPayload = {
       name: (formData.get("name") as string) || continentData.name,
       faction: formData.get("faction") as string,
       location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися
+      existingGalleryImages: existingGallery,
     };
 
-    // 💡 Виклик updateItem поки що БЕЗ ФАЙЛІВ, як ви просили
-    await updateItem(continentId, data);
+    // 2. Збір файлів
+    const coverFile = imageFile; // Головне фото зі стейту
+    const newGallery = newGalleryFiles; // Нові файли галереї зі стейту
+
+    // 3. 🟢 Виклик updateItem з усіма аргументами
+    await updateItem(
+      continentId,
+      data,
+      coverFile,
+      newGallery.length > 0 ? newGallery : undefined
+    );
 
     router.refresh();
     router.push(`/worlds/${worldId}`);
@@ -167,7 +200,7 @@ export default function EditContinentPage({
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
           {/* 🆕 ЛІВА КОЛОНКА (МЕДІА) */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
+            {/* 1. ГОЛОВНЕ ФОТО (без змін) */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -208,7 +241,7 @@ export default function EditContinentPage({
               {previewUrl ? "Change Cover" : "Upload Cover"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
+            {/* 2. ГАЛЕРЕЯ (ОНОВЛЕНО: додана кнопка видалення для існуючих) */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -231,6 +264,14 @@ export default function EditContinentPage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
+                    {/* 🟢 Кнопка видалення для існуючих файлів */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryImage(fileName)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
+                    >
+                      <span>x</span>
+                    </button>
                   </div>
                 ))}
 
@@ -328,14 +369,14 @@ export default function EditContinentPage({
                   Type
                 </label>
                 <Select
-                  defaultValue={continentData.location_type || "active"}
+                  defaultValue={continentData.location_type || "landmass"}
                   className="mt-2"
                   name="location_type"
                 >
-                  <option value="active">Active</option>
-                  <option value="missing">Missing</option>
-                  <option value="deceased">Deceased</option>
-                  <option value="upcoming">Upcoming</option>
+                  <option value="landmass">Landmass</option>
+                  <option value="island_chain">Island Chain</option>
+                  <option value="floating_continent">Floating Continent</option>
+                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>

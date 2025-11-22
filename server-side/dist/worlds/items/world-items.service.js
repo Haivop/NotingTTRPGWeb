@@ -93,10 +93,39 @@ let WorldItemsService = class WorldItemsService {
         });
         return this.worldItemsRepository.save(item);
     }
-    async update(worldId, itemId, dto) {
+    async update(worldId, itemId, dto, imageFile, galleryFiles) {
         const item = await this.worldItemsRepository.findOne({ where: { id: itemId, worldId } });
         if (!item) {
             throw new common_1.NotFoundException('Item not found');
+        }
+        console.log('=========================================');
+        console.log('🔄 SERVICE UPDATE: START');
+        console.log(`[Item: ${itemId}] Old Gallery:`, item.galleryImages);
+        console.log('[DTO] Existing to keep:', dto.existingGalleryImages);
+        console.log(`[FILE] New Cover: ${(imageFile === null || imageFile === void 0 ? void 0 : imageFile.originalname) || 'None'}`);
+        console.log(`[FILE] New Gallery Count: ${(galleryFiles === null || galleryFiles === void 0 ? void 0 : galleryFiles.length) || 0}`);
+        console.log(galleryFiles);
+        console.log('=========================================');
+        let uploadedNewFiles = [];
+        const oldGalleryImages = item.galleryImages || [];
+        let filesToKeep = [];
+        if (imageFile) {
+            if (item.imageUrl) {
+                await this.deleteFile(item.imageUrl);
+            }
+            item.imageUrl = await this.saveFile(imageFile);
+        }
+        if (galleryFiles && galleryFiles.length > 0) {
+            uploadedNewFiles = await Promise.all(galleryFiles.map((file) => this.saveFile(file)));
+            console.log('[GALLERY] Uploaded new files:', uploadedNewFiles);
+        }
+        const requiredToKeep = new Set(dto.existingGalleryImages || []);
+        const allPossibleFileNames = [...oldGalleryImages, ...uploadedNewFiles];
+        const keptOldFiles = oldGalleryImages.filter((fileName) => requiredToKeep.has(fileName));
+        filesToKeep = [...keptOldFiles, ...uploadedNewFiles];
+        const filesToDelete = oldGalleryImages.filter((fileName) => !requiredToKeep.has(fileName));
+        if (filesToDelete.length > 0) {
+            await Promise.all(filesToDelete.map((fileName) => this.deleteFile(fileName)));
         }
         if (dto.name)
             item.name = dto.name;
@@ -104,8 +133,26 @@ let WorldItemsService = class WorldItemsService {
             item.type = dto.type;
         if (dto.payload)
             item.payload = { ...item.payload, ...dto.payload };
+        item.galleryImages = filesToKeep;
+        console.log(filesToKeep);
         const saved = await this.worldItemsRepository.save(item);
         return this.toResponse(saved);
+    }
+    async deleteFile(fileName) {
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        const filePath = path.join(uploadDir, fileName);
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+                console.log(`[DELETE] Successfully deleted file: ${fileName}`);
+            }
+            catch (error) {
+                console.error(`[DELETE] Failed to delete file ${fileName}:`, error);
+            }
+        }
+        else {
+            console.warn(`[DELETE] File not found on disk: ${fileName}`);
+        }
     }
     async remove(worldId, itemId) {
         const item = await this.worldItemsRepository.findOne({ where: { id: itemId, worldId } });

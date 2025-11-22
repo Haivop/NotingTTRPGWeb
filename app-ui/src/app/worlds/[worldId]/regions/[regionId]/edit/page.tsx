@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // 👈 ДОДАНО useState, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
@@ -13,6 +13,12 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+
+// Створюємо інтерфейс для даних, які відправляються на бекенд,
+// включаючи метадані галереї.
+interface UpdateRegionPayload extends ItemFormData {
+  existingGalleryImages?: string[];
+}
 
 const ITEM_TYPE = "regions";
 
@@ -41,10 +47,10 @@ export default function EditRegionPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [existingGallery, setExistingGallery] = useState<string[]>([]);
-  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // 🟢 Зберігає об'єкти File
   const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
 
-  // --- 1. Асинхронне завантаження даних ---
+  // --- 1. Асинхронне завантаження даних (логіка ініціалізації галереї) ---
   useEffect(() => {
     let isMounted = true;
     if (!regionId) {
@@ -81,7 +87,7 @@ export default function EditRegionPage({
     };
   }, [regionId]);
 
-  // --- UI Обробники (Тільки візуал) ---
+  // --- UI Обробники (ОНОВЛЕНО) ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -90,23 +96,38 @@ export default function EditRegionPage({
     }
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Зберігає нові файли у стейт newGalleryFiles.
+   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
+
+      // Зберігаємо файли
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+      // Зберігаємо прев'ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
-      // Тут можна зберігати файли в стейт, якщо потрібно для фінального збереження
-      // setNewGalleryFiles((prev) => [...prev, ...files]);
     }
     e.target.value = "";
   };
 
+  /**
+   * 🟢 ОНОВЛЕНО: Видаляє новий файл та прев'ю.
+   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
-    // setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 2. Обробник надсилання форми ---
+  /**
+   * 🟢 НОВИЙ ОБРОБНИК: Видалення існуючого зображення.
+   */
+  const removeExistingGalleryImage = (fileName: string) => {
+    setExistingGallery((prev) => prev.filter((name) => name !== fileName));
+  };
+
+  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!regionData) return;
@@ -114,15 +135,28 @@ export default function EditRegionPage({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateRegionPayload = {
       name: (formData.get("name") as string) || regionData.name,
       faction: formData.get("faction") as string,
       location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися
+      existingGalleryImages: existingGallery,
     };
 
-    // 💡 Виклик updateItem поки що БЕЗ ФАЙЛІВ, але з правильною сигнатурою
-    await updateItem(regionId, data);
+    // 2. Збір файлів
+    const coverFile = imageFile; // Головне фото зі стейту
+    const newGallery = newGalleryFiles; // Нові файли галереї зі стейту
+
+    // 3. 🟢 Виклик updateItem з усіма аргументами
+    await updateItem(
+      regionId,
+      data,
+      coverFile,
+      newGallery.length > 0 ? newGallery : undefined
+    );
 
     router.refresh();
     router.push(`/worlds/${worldId}`);
@@ -238,6 +272,14 @@ export default function EditRegionPage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
+                    {/* 🟢 Кнопка видалення для існуючих файлів */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryImage(fileName)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
+                    >
+                      <span>x</span>
+                    </button>
                   </div>
                 ))}
 
@@ -279,6 +321,20 @@ export default function EditRegionPage({
                   />
                 </label>
               </div>
+            </div>
+
+            {/* Блок нотаток */}
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
+              <p className="font-display text-[11px] text-purple-100/80">
+                Region Notes
+              </p>
+              <p className="mt-2">Pin maps.</p>
+              <button
+                type="button"
+                className="mt-3 rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/55 transition hover:border-white/40 hover:text-white"
+              >
+                + Add Item
+              </button>
             </div>
           </div>
 
@@ -324,14 +380,14 @@ export default function EditRegionPage({
                   Type
                 </label>
                 <Select
-                  defaultValue={regionData.location_type || "active"}
+                  defaultValue={regionData.location_type || "landmass"}
                   className="mt-2"
                   name="location_type"
                 >
-                  <option value="active">Active</option>
-                  <option value="missing">Missing</option>
-                  <option value="deceased">Deceased</option>
-                  <option value="upcoming">Upcoming</option>
+                  <option value="settlement">Settlement</option>
+                  <option value="landmark">Landmark</option>
+                  <option value="terrain">Terrain</option>
+                  <option value="other">Other</option>
                 </Select>
               </div>
             </div>

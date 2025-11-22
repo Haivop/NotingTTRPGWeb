@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // 👈 Додали useState, useEffect, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 
@@ -14,9 +14,12 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "characters";
+// Створюємо інтерфейс для даних, які відправляються на бекенд,
+// включаючи метадані галереї.
+interface UpdateCharacterPayload extends ItemFormData {
+  existingGalleryImages?: string[];
+}
 
-// 👇 Базовий URL для картинок
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
 const IMAGE_BASE_URL = `${API_BASE.replace("/api", "")}/uploads`;
@@ -49,6 +52,10 @@ export default function EditCharacterPage({
   // --- 1. Асинхронне завантаження даних ---
   useEffect(() => {
     let isMounted = true;
+    if (!characterId) {
+      setIsLoading(false);
+      return;
+    }
 
     getItemById(characterId).then((data: WorldItem | null) => {
       if (isMounted && data) {
@@ -74,53 +81,78 @@ export default function EditCharacterPage({
     };
   }, [characterId]);
 
-  // --- UI Обробники (СКОПІЙОВАНО З АРТЕФАКТУ) ---
+  // --- UI Обробники (ОНОВЛЕНО) ---
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Тут ми зберігаємо файл у стейт (для подальшого збереження)
       setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
+  /**
+   * 🛠️ ВИПРАВЛЕНО: Тепер зберігає не лише прев'ю, але й самі об'єкти File.
+   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
+
+      // 1. 🟢 ЗБЕРІГАЄМО ФАЙЛИ
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+
+      // 2. ЗБЕРІГАЄМО ПРЕВ'Ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
-      // Зберігаємо файли, хоча логіку збереження ми не реалізували
-      // (Це треба, щоб пізніше передати їх в updateItem)
-      // setNewGalleryFiles((prev) => [...prev, ...files]);
     }
     e.target.value = "";
   };
 
+  /**
+   * 🛠️ ВИПРАВЛЕНО: Тепер видаляє як прев'ю, так і відповідний об'єкт File.
+   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
-    // setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index)); // Потрібно для реального збереження
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 2. Обробник надсилання форми ---
+  /**
+   * 🟢 ОНОВЛЕНО: Видалення існуючого зображення з галереї.
+   */
+  const removeExistingGalleryImage = (fileName: string) => {
+    setExistingGallery((prev) => prev.filter((name) => name !== fileName));
+  };
+
+  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!characterData) return;
+
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
-      name:
-        (formData.get("name") as string) || characterData?.name || "Unnamed",
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateCharacterPayload = {
+      name: (formData.get("name") as string) || characterData.name || "Unnamed",
       faction: formData.get("faction") as string,
       role: formData.get("role") as string,
       status: formData.get("status") as string,
       description: formData.get("description") as string,
       motivations: formData.get("motivations") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися після видалення
+      existingGalleryImages: existingGallery,
     };
 
-    // ❗ Тут поки старий виклик БЕЗ ФАЙЛІВ, оскільки ви просили не чіпати збереження
-    // 💡 ЯКЩО БУДЕ ПРАЦЮВАТИ: await updateItem(worldId, characterId, data, imageFile, newGalleryFiles);
-    await updateItem(characterId, data);
+    // 2. Виклик оновленого методу з усіма аргументами
+    await updateItem(
+      characterId,
+      data, // ⬅️ data тепер містить existingGalleryImages
+      imageFile, // ⬅️ imageFile (новий головний файл)
+      newGalleryFiles.length > 0 ? newGalleryFiles : undefined // ⬅️ newGalleryFiles (нові файли галереї)
+    );
 
+    // Очищення та перенаправлення
     router.refresh();
     router.push(`/worlds/${worldId}`);
   };
@@ -174,9 +206,9 @@ export default function EditCharacterPage({
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* 🆕 ЛІВА КОЛОНКА (МЕДІА) - СКОПІЙОВАНО З АРТЕФАКТУ */}
+          {/* ЛІВА КОЛОНКА (МЕДІА) */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
+            {/* 1. ГОЛОВНЕ ФОТО (без змін) */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -217,7 +249,7 @@ export default function EditCharacterPage({
               {previewUrl ? "Change Portrait" : "Upload Portrait"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
+            {/* 2. ГАЛЕРЕЯ (ОНОВЛЕНО: додана кнопка видалення для існуючих) */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -240,10 +272,18 @@ export default function EditCharacterPage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
+                    {/* 🟢 Кнопка видалення для існуючих файлів */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryImage(fileName)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
+                    >
+                      <span>x</span>
+                    </button>
                   </div>
                 ))}
 
-                {/* Нові прев'ю */}
+                {/* Нові прев'ю (без змін) */}
                 {newGalleryPreviews.map((src, idx) => (
                   <div
                     key={`new-${idx}`}
@@ -259,7 +299,7 @@ export default function EditCharacterPage({
                       onClick={() => removeNewGalleryImage(idx)}
                       className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
                     >
-                      <span>x</span>{" "}
+                      <span>x</span>
                     </button>
                     <div className="absolute bottom-0 left-0 right-0 bg-green-500/20 text-[8px] text-center text-green-200 py-0.5 font-bold">
                       NEW
@@ -267,7 +307,7 @@ export default function EditCharacterPage({
                   </div>
                 ))}
 
-                {/* Кнопка + */}
+                {/* Кнопка + (без змін) */}
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/5 transition hover:border-white/40 hover:bg-white/10">
                   <span className="text-2xl text-white/50">+</span>
                   <input

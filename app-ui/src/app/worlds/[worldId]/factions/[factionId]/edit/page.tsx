@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react"; // 👈 ДОДАНО useState, useRef
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getItemById, deleteItem, updateItem } from "@/lib/world-data";
+import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
 import { ItemFormData, WorldItem, FactionItem } from "@/lib/types";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-const ITEM_TYPE = "factions";
+// Створюємо інтерфейс для даних, які відправляються на бекенд,
+// включаючи метадані галереї.
+interface UpdateFactionPayload extends ItemFormData {
+  existingGalleryImages?: string[];
+}
 
 // Базовий URL для картинок
 const API_BASE =
@@ -33,15 +36,15 @@ export default function EditFactionPage({
   const [isLoading, setIsLoading] = useState(true);
 
   // --- СТАН ДЛЯ МЕДІА ---
-  const [imageFile, setImageFile] = useState<File | null>(null); // Файл для завантаження
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // URL для прев'ю
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [existingGallery, setExistingGallery] = useState<string[]>([]); // З сервера
-  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // Нові файли (для ігнорування)
-  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]); // Прев'ю нових
+  const [existingGallery, setExistingGallery] = useState<string[]>([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // 🟢 Зберігає об'єкти File
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
 
-  // --- 1. Асинхронне завантаження даних ---
+  // --- 1. Асинхронне завантаження даних (без змін) ---
   useEffect(() => {
     let isMounted = true;
     if (!factionId) {
@@ -54,12 +57,10 @@ export default function EditFactionPage({
         const faction = data as FactionItem;
         setFactionData(faction);
 
-        // 🆕 ІНІЦІАЛІЗАЦІЯ: Головне фото
         if (faction.imageUrl) {
           setPreviewUrl(`${IMAGE_BASE_URL}/${faction.imageUrl}`);
         }
 
-        // 🆕 ІНІЦІАЛІЗАЦІЯ: Галерея
         if (faction.galleryImages && Array.isArray(faction.galleryImages)) {
           setExistingGallery(faction.galleryImages);
         }
@@ -73,32 +74,47 @@ export default function EditFactionPage({
     };
   }, [factionId]);
 
-  // --- UI Обробники (Тільки візуал) ---
+  // --- UI Обробники (ОНОВЛЕНО) ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file); // Зберігаємо файл (для майбутнього збереження)
+      setImageFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
+  /**
+   * 🟢 ВИПРАВЛЕНО: Зберігає файли у стейт newGalleryFiles.
+   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
+
+      // Зберігаємо файли
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+      // Зберігаємо прев'ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
-      // Тут можна зберегти файли в стейт, якщо потрібно для фінального збереження
-      // setNewGalleryFiles((prev) => [...prev, ...files]);
     }
     e.target.value = "";
   };
 
+  /**
+   * 🟢 ВИПРАВЛЕНО: Видаляє новий файл та прев'ю.
+   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
-    // setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 2. Обробник надсилання форми ---
+  /**
+   * 🟢 НОВИЙ ОБРОБНИК: Видалення існуючого зображення.
+   */
+  const removeExistingGalleryImage = (fileName: string) => {
+    setExistingGallery((prev) => prev.filter((name) => name !== fileName));
+  };
+
+  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!factionData) return;
@@ -106,13 +122,26 @@ export default function EditFactionPage({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const data: ItemFormData = {
+    // 1. Збір текстових даних та метаданих галереї
+    const data: UpdateFactionPayload = {
       name: (formData.get("name") as string) || factionData.name,
       description: formData.get("description") as string,
+
+      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися
+      existingGalleryImages: existingGallery,
     };
 
-    // 💡 Виклик updateItem поки що БЕЗ ФАЙЛІВ, як ви просили
-    await updateItem(factionId, data);
+    // 2. Збір файлів
+    const coverFile = imageFile; // Головне фото зі стейту
+    const newGallery = newGalleryFiles; // Нові файли галереї зі стейту
+
+    // 3. 🟢 Виклик updateItem з усіма аргументами
+    await updateItem(
+      factionId,
+      data,
+      coverFile,
+      newGallery.length > 0 ? newGallery : undefined
+    );
 
     router.refresh();
     router.push(`/worlds/${worldId}`);
@@ -205,7 +234,7 @@ export default function EditFactionPage({
               {previewUrl ? "Change Cover" : "Upload Image"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
+            {/* 2. ГАЛЕРЕЯ (ОНОВЛЕНО: додана кнопка видалення для існуючих) */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -228,6 +257,14 @@ export default function EditFactionPage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
+                    {/* 🟢 Кнопка видалення для існуючих файлів */}
+                    <button
+                      type="button"
+                      onClick={() => removeExistingGalleryImage(fileName)}
+                      className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
+                    >
+                      <span>x</span>
+                    </button>
                   </div>
                 ))}
 
@@ -271,7 +308,7 @@ export default function EditFactionPage({
               </div>
             </div>
 
-            {/* Блок нотаток */}
+            {/* Блок нотаток (без змін) */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <p className="font-display text-[11px] text-purple-100/80">
                 Faction Notes
