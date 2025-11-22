@@ -80,11 +80,17 @@ export default function EditArtifactPage() {
     }
   };
 
+  // src/app/worlds/[worldId]/artifacts/[artifactId]/edit/page.tsx
+
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
-      // Додаємо нові прев'ю до списку
+
+      // 1. 🟢 ЗБЕРІГАЄМО ФАЙЛИ
+      setNewGalleryFiles((prev) => [...prev, ...files]);
+
+      // 2. ЗБЕРІГАЄМО ПРЕВ'Ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
     }
     e.target.value = "";
@@ -94,6 +100,14 @@ export default function EditArtifactPage() {
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
+  // ... (імпорти та стейт без змін)
+
+  // Припустімо, що у вас є ці стейти (як ми їх вводили в попередніх обговореннях):
+  // const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
+  // const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ...
 
   // --- Збереження (Стара логіка + нові поля, але без обробки файлів поки що) ---
   const handleSaveArtifact = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -106,6 +120,47 @@ export default function EditArtifactPage() {
       in_possession_of: formData.get("in_possession_of") as string,
       description: formData.get("description") as string,
     };
+
+    // 1. 🟢 ЛОГУВАННЯ ФАЙЛІВ (для діагностики)
+    const coverFile = fileInputRef.current?.files?.[0];
+
+    console.log("--- DEBUG: Artifact Update Data ---");
+    console.log("Text Data:", data);
+    console.log("----------------------------------");
+
+    // Логування головного фото
+    if (coverFile) {
+      console.log(
+        `Cover File Selected: ${coverFile.name} (${(
+          coverFile.size / 1024
+        ).toFixed(2)} KB)`
+      );
+    } else {
+      console.log(
+        `Cover File: Not changed. Existing URL: ${
+          artifactData?.imageUrl || "None"
+        }`
+      );
+    }
+
+    // Логування галереї
+    // 💡 Примітка: Логуємо або реальні файли (якщо стейт існує), або прев'ю.
+    // Я припускаю, що ви ввели стейт 'newGalleryFiles' для файлів.
+    const newFiles = newGalleryFiles; // Використовуємо стейт
+
+    if (newFiles.length > 0) {
+      console.log(`Gallery Files to Upload (New): ${newFiles.length} files`);
+      newFiles.forEach((file) => {
+        console.log(`  - ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+      });
+    } else {
+      console.log("Gallery Files to Upload (New): None.");
+    }
+
+    console.log(
+      `Existing Gallery Images (to keep): ${existingGallery.length} files`
+    );
+    console.log("----------------------------------");
 
     // Тут поки старий виклик (без файлів), як ви і просили
     await updateItem(artifactId, data);
