@@ -32,6 +32,15 @@ let UsersController = class UsersController {
             createdAt: updated.createdAt,
         };
     }
+    async checkExistenceByEmail(email) {
+        if (!email) {
+            throw new Error('Email query parameter is required.');
+        }
+        const exists = await this.usersService.checkExistenceByEmail(email);
+        return {
+            exists: exists,
+        };
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -43,6 +52,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, update_user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Get)('check-existence'),
+    __param(0, (0, common_1.Query)('email')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "checkExistenceByEmail", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])

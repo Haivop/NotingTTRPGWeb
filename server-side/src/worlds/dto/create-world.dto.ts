@@ -30,8 +30,9 @@ export class CreateWorldDto {
   startingRegion?: string;
 
   @IsOptional()
-  @IsString()
-  contributors?: string;
+  @IsArray()
+  @IsString({ each: true })
+  contributors?: string[];
 
   @IsOptional()
   @IsBoolean()

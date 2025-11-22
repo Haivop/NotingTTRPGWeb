@@ -122,7 +122,7 @@ export interface WorldEntity {
   authorId: string;
   name: string;
   description: string;
-  contributors: string;
+  contributors: string[];
   type: string;
   era: string;
   themes: string;

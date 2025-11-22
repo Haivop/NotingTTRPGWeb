@@ -49,7 +49,14 @@ let WorldsController = class WorldsController {
     createWorld(dto, user, image) {
         return this.worldsService.createWorld(user.sub, dto, image);
     }
-    updateWorld(worldId, dto, user, image) {
+    async updateWorld(worldId, dto, user, image) {
+        if (dto.contributors) {
+            if (!Array.isArray(dto.contributors)) {
+                dto.contributors = [dto.contributors];
+            }
+        }
+        else {
+        }
         return this.worldsService.updateWorld(worldId, user.sub, dto, image);
     }
     deleteWorld(worldId, user) {
@@ -127,7 +134,7 @@ __decorate([
     __param(3, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_world_dto_1.UpdateWorldDto, Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], WorldsController.prototype, "updateWorld", null);
 __decorate([
     (0, common_1.Delete)(':id'),

@@ -29,6 +29,7 @@ export default function EditArtifactPage() {
 
   const [artifactData, setArtifactData] = useState<ArtifactItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
 
   // --- Стейт для UI зображень (візуальна частина) ---
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);

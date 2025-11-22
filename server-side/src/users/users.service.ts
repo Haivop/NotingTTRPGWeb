@@ -11,11 +11,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(data: {
-    username: string;
-    email: string;
-    passwordHash: string;
-  }): Promise<User> {
+  async create(data: { username: string; email: string; passwordHash: string }): Promise<User> {
     const user = this.usersRepository.create({
       username: data.username,
       email: data.email,
@@ -40,6 +36,19 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * Перевіряє, чи існує користувач із заданим email.
+   * @param email Email користувача.
+   * @returns boolean - true, якщо знайдено, false - якщо ні.
+   */
+  async checkExistenceByEmail(email: string): Promise<boolean> {
+    // Ми можемо просто використати findByEmail
+    const user = await this.findByEmail(email);
+
+    // Повертаємо true, якщо об'єкт користувача існує, false - якщо null
+    return !!user;
+  }
+
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
 
@@ -52,7 +61,9 @@ export class UsersService {
     }
 
     if (dto.email && dto.email.toLowerCase() !== user.email.toLowerCase()) {
-      const existing = await this.usersRepository.findOne({ where: { email: dto.email.toLowerCase() } });
+      const existing = await this.usersRepository.findOne({
+        where: { email: dto.email.toLowerCase() },
+      });
       if (existing) {
         throw new BadRequestException('Email already in use');
       }
