@@ -131,20 +131,41 @@ export async function createNewWorld(
 
 export async function updateWorldMetadata(
   worldId: string,
-  data: Partial<WorldEntity>
+  data: Partial<WorldEntity>,
+  imageFile?: File | null // 🆕 1. Додали аргумент для файлу
 ): Promise<void> {
+  // 🆕 2. Використовуємо FormData замість JSON
+  const formData = new FormData();
+
+  // --- Додаємо текстові поля, тільки якщо вони є ---
+  if (data.name) formData.append("name", data.name);
+  if (data.description) formData.append("description", data.description);
+  if (data.type) formData.append("type", data.type);
+  if (data.era) formData.append("era", data.era);
+  if (data.themes) formData.append("themes", data.themes);
+
+  // Мапінг: starting_region (фронт) -> startingRegion (бек)
+  if (data.starting_region)
+    formData.append("startingRegion", data.starting_region);
+
+  if (data.contributors) formData.append("contributors", data.contributors);
+
+  // --- Логіка для isPublic ---
+  // Перевіряємо строго на undefined, щоб не пропустити значення false
+  if (data.isPublic !== undefined) {
+    formData.append("isPublic", String(data.isPublic));
+  }
+
+  // --- Логіка для Зображення ---
+  // 🆕 3. Якщо файл передано, додаємо його
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  // --- Відправка ---
   await apiRequest(`/worlds/${worldId}`, {
     method: "PATCH",
-    body: JSON.stringify({
-      name: data.name,
-      description: data.description,
-      type: data.type,
-      era: data.era,
-      themes: data.themes,
-      startingRegion: data.starting_region,
-      contributors: data.contributors,
-      isPublic: data.isPublic,
-    }),
+    body: formData, // ⚠️ Браузер сам встановить Content-Type: multipart/form-data
   });
 }
 
