@@ -117,6 +117,15 @@ export async function createNewWorld(
     body: formData, // <--- ТЕПЕР ТУТ FormData
   });
 
+  console.log("🔍 FormData isPublic:", formData.get("isPublic"));
+
+  // 2. Або (найкращий спосіб) вивести ВЕСЬ вміст форми, щоб переконатися у всьому
+  console.log("--- FormData Content ---");
+  for (const pair of formData.entries()) {
+    console.log(`${pair[0]}: ${pair[1]}`);
+  }
+  console.log("------------------------");
+
   return response.id;
 }
 

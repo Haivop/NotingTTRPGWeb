@@ -54,6 +54,8 @@ export default function CreateWorldPage() {
     // 2. Створюємо світ
     const newWorldId = await createNewWorld(data, imageFile);
 
+    console.log(data);
+
     // 3. Оновлення та перенаправлення
     router.refresh();
     router.push(`/worlds/${newWorldId}`); // Перенаправляємо на сторінку огляду щойно створеного світу

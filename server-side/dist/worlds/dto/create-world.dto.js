@@ -57,12 +57,14 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
-    (0, class_transformer_1.Transform)(({ value }) => {
-        if (value === 'true')
+    (0, class_transformer_1.Transform)(({ obj, key }) => {
+        const rawValue = obj[key];
+        console.log(`🔍 FIX TRANSFORM. Raw: [${rawValue}]`);
+        if (rawValue === 'true' || rawValue === true)
             return true;
-        if (value === 'false')
+        if (rawValue === 'false' || rawValue === false)
             return false;
-        return value;
+        return rawValue;
     }),
     __metadata("design:type", Boolean)
 ], CreateWorldDto.prototype, "isPublic", void 0);
