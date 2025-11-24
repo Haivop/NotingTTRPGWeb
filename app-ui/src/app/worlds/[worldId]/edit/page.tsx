@@ -6,9 +6,9 @@ import {
   getWorldById,
   updateWorldMetadata,
   deleteWorld,
-  checkUserExistsByEmail, // 🟢 Імпорт для перевірки email
+  checkUserExistsByEmail,
 } from "@/lib/world-data";
-import { getCachedUser } from "@/lib/token-storage"; // 🟢 Імпорт для отримання поточного користувача
+import { getCachedUser } from "@/lib/token-storage";
 import { WorldEntity } from "@/lib/types";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/Button";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
 const IMAGE_BASE_URL = `${API_BASE.replace("/api", "")}/uploads`;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Регулярний вираз для email
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function EditWorldPage() {
   const router = useRouter();
@@ -36,11 +36,9 @@ export default function EditWorldPage() {
   const [contributorError, setContributorError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 2. 🟢 Отримання кешованих даних ПІСЛЯ хуків
   const cachedUser = getCachedUser();
   const currentUserEmail = cachedUser?.email?.toLowerCase();
 
-  // --- ЛОГІКА ЗАВАНТАЖЕННЯ ДАНИХ ---
   useEffect(() => {
     if (!worldId) {
       setIsLoading(false);
@@ -52,15 +50,14 @@ export default function EditWorldPage() {
         if (data) {
           setWorldData(data);
 
-          // 2. ІНІЦІАЛІЗАЦІЯ СПІВАВТОРІВ З БЕКЕНДУ
           if (data.contributors && Array.isArray(data.contributors)) {
-            // Приводимо до нижнього регістру для консистентності
             setContributors(
               data.contributors.map((email) => email.toLowerCase())
             );
           }
 
           // Логіка видимості (без змін)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const rawData = data as any;
           let isVisible = false;
 
@@ -73,23 +70,20 @@ export default function EditWorldPage() {
           }
           setIsPublic(isVisible);
           if (data.contributors && Array.isArray(data.contributors)) {
-            // 🟢 ПРАВИЛЬНИЙ ЛОГ: Логуємо дані, які прийшли з API
             console.log(
               "🟢 API SUCCESS. Contributors received:",
               data.contributors
-            ); // Приводимо до нижнього регістру для консистентності
+            );
 
             setContributors(
               data.contributors.map((email) => email.toLowerCase())
             );
           } else {
-            // 🔴 ЛОГ: Якщо прийшло null або не масив
             console.log(
               "🔴 DEBUG: Contributors field is empty, null, or not an array.",
               data.contributors
             );
           }
-          // Логіка картинки (без змін)
           if (data.mapUrl) {
             const fullUrl = data.mapUrl.startsWith("http")
               ? data.mapUrl
@@ -111,8 +105,6 @@ export default function EditWorldPage() {
     }
   };
 
-  // --- 3. ЛОГІКА СПІВАВТОРІВ (перенесено з CreateWorldPage) ---
-
   const handleInviteContributor = async () => {
     setContributorError(null);
     const email = contributorEmail.trim().toLowerCase();
@@ -122,7 +114,6 @@ export default function EditWorldPage() {
       return;
     }
 
-    // 🟢 ПЕРЕВІРКА: Заборона додавати себе
     if (email === currentUserEmail) {
       setContributorError(
         "You are the world's owner and cannot be added as a contributor."
@@ -158,7 +149,6 @@ export default function EditWorldPage() {
     setContributors((prev) => prev.filter((email) => email !== emailToRemove));
   };
 
-  // --- 4. ОНОВЛЕННЯ ДАНИХ ---
   const handleSaveChanges = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -172,15 +162,11 @@ export default function EditWorldPage() {
       themes: formData.get("themes") as string,
       starting_region: formData.get("starting_region") as string,
 
-      // 🟢 ВКЛЮЧАЄМО ОНОВЛЕНИЙ СПИСОК СПІВАВТОРІВ
       contributors: contributors,
 
       isPublic: isPublic,
     };
 
-    // ⚠️ Тут потрібно також переконатися, що у вашому `updateWorldMetadata`
-    // оновлена логіка для `contributors` (як масиву) присутня!
-    // (Ми це вже робили в попередньому кроці, де ітерували масив)
     await updateWorldMetadata(worldId, data, imageFile);
 
     router.refresh();
@@ -217,17 +203,8 @@ export default function EditWorldPage() {
         className="grid gap-8 lg:grid-cols-[1.3fr_1fr]"
         onSubmit={handleSaveChanges}
       >
-        {/* --- ЛІВА КОЛОНКА (MAP & METADATA) --- */}
         <GlassPanel className="p-8">
           <div className="flex flex-col gap-8">
-            {/* MAP SECTION (без змін) */}
-            {/* ... */}
-            {/* Type, Era, Themes, Region (без змін) */}
-            {/* ... */}
-            {/* ⚠️ Вставте сюди JSX код для секцій World Map, Type, Era, Themes, Region */}
-            {/* ... (ваш JSX код зліва) ... */}
-
-            {/* ВАШ КОД ДЛЯ ЛІВОЇ КОЛОНКИ ПОВНІСТЮ (перенесено для цілісності) */}
             <div>
               <p className="font-display text-xs text-purple-200/80">
                 WORLD MAP
@@ -320,10 +297,8 @@ export default function EditWorldPage() {
           </div>
         </GlassPanel>
 
-        {/* --- ПРАВА КОЛОНКА (NAME, DESCRIPTION, CONTRIBUTORS, VISIBILITY) --- */}
         <GlassPanel className="p-8">
           <div className="flex flex-col gap-6">
-            {/* Name & Description (без змін) */}
             <div>
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Name
@@ -346,21 +321,11 @@ export default function EditWorldPage() {
               />
             </div>
 
-            {/* 5. 🆕 СЕКЦІЯ СПІВАВТОРІВ (оновлена) */}
             <div>
               <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                 Contributors
               </label>
 
-              {/* ❌ ВИДАЛЯЄМО СТАРИЙ INPUT, ЯКИЙ НЕ ПРАЦЮВАВ З МАСИВОМ:
-              <Input
-                className="mt-2"
-                name="contributors"
-                defaultValue={worldData.contributors}
-              />
-              */}
-
-              {/* ПОЛЕ ВВЕДЕННЯ НОВОГО СПІВАВТОРА */}
               <div className="mt-2 flex gap-2">
                 <Input
                   placeholder="scribe@alliance.guild"
@@ -387,7 +352,6 @@ export default function EditWorldPage() {
                 <p className="mt-2 text-xs text-red-400">{contributorError}</p>
               )}
 
-              {/* ✅ ВІДОБРАЖЕННЯ СПИСОКУ (Зі стану `contributors`, який вже заповнений з БД) */}
               <div className="mt-3 flex flex-wrap gap-2 min-h-[40px]">
                 {contributors.map((email) => (
                   <span
@@ -406,9 +370,7 @@ export default function EditWorldPage() {
                 ))}
               </div>
             </div>
-            {/* --- КІНЕЦЬ СЕКЦІЇ СПІВАВТОРІВ --- */}
 
-            {/* VISIBILITY TOGGLE (без змін) */}
             <div
               className={`flex items-center justify-between rounded-3xl border p-4 transition-all duration-300 ${
                 isPublic

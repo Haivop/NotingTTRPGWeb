@@ -1,4 +1,3 @@
-// src/hooks/useWorldOwnership.ts (Виправлений код)
 "use client";
 
 import { useAuth } from "@/components/layout/AuthContext";

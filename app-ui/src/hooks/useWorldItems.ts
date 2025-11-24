@@ -1,4 +1,3 @@
-// src/hooks/useWorldItems.ts
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,11 +10,10 @@ export function useWorldItems(worldId: string, itemType: string) {
   const pathname = usePathname();
 
   useEffect(() => {
-    let isMounted = true; // Для запобігання оновлення стану на неіснуючому компоненті
-
+    let isMounted = true;
     async function fetchItems() {
       try {
-        // setLoading(true); // Видаляємо, оскільки loading вже true
+        // setLoading(true);
         const data = await getItemsByType(worldId, itemType);
 
         if (isMounted) {
@@ -28,18 +26,17 @@ export function useWorldItems(worldId: string, itemType: string) {
         }
       } finally {
         if (isMounted) {
-          setLoading(false); // Встановлення false безпечне
+          setLoading(false);
         }
       }
     }
 
     fetchItems();
 
-    // Функція очищення (Cleanup function)
     return () => {
       isMounted = false;
     };
-  }, [worldId, itemType, pathname]); // Перезавантажуємо при зміні параметрів
+  }, [worldId, itemType, pathname]);
 
   return { items, loading };
 }

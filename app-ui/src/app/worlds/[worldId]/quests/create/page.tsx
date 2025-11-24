@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useRef } from "react"; // 🆕 Додано useState, useRef
+
+import React, { useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { saveNewItem } from "@/lib/world-data";
 import { ItemFormData } from "@/lib/types";
-
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
@@ -13,14 +13,13 @@ import { Button } from "@/components/ui/Button";
 
 const ITEM_TYPE = "quests";
 
-export default function CreateQuestsPage(/* params */) {
+export default function CreateQuestsPage() {
   const router = useRouter();
   const params = useParams();
   const worldId = params.worldId as string;
 
   const questName = "New Quest";
 
-  // --- СТАН ДЛЯ МЕДІА ---
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,7 +27,6 @@ export default function CreateQuestsPage(/* params */) {
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
-  // --- ОБРОБНИКИ ФАЙЛІВ ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -56,7 +54,6 @@ export default function CreateQuestsPage(/* params */) {
     router.push(`/worlds/${worldId}`);
   };
 
-  // --- Обробник надсилання форми ---
   const handleSaveQuest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -71,7 +68,6 @@ export default function CreateQuestsPage(/* params */) {
       description: formData.get("description") as string,
     };
 
-    // 🆕 Викликаємо API, передаючи файли
     await saveNewItem(worldId, ITEM_TYPE, data, imageFile, galleryFiles);
 
     router.refresh();
@@ -90,9 +86,7 @@ export default function CreateQuestsPage(/* params */) {
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* --- ЛІВА КОЛОНКА (МЕДІА) --- */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -114,7 +108,6 @@ export default function CreateQuestsPage(/* params */) {
               </div>
             </div>
 
-            {/* Прихований інпут для головного фото */}
             <input
               type="file"
               ref={fileInputRef}
@@ -131,7 +124,6 @@ export default function CreateQuestsPage(/* params */) {
               {previewUrl ? "Change Cover" : "Upload Image"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -145,7 +137,6 @@ export default function CreateQuestsPage(/* params */) {
               <p className="mt-2 mb-3">Add supporting artwork, sigils.</p>
 
               <div className="grid grid-cols-3 gap-2">
-                {/* Прев'ю вибраних картинок */}
                 {galleryPreviews.map((src, idx) => (
                   <div
                     key={idx}
@@ -157,7 +148,6 @@ export default function CreateQuestsPage(/* params */) {
                       alt={`Gallery ${idx}`}
                     />
 
-                    {/* Кнопка видалення */}
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
@@ -168,7 +158,6 @@ export default function CreateQuestsPage(/* params */) {
                   </div>
                 ))}
 
-                {/* Кнопка додавання (+) */}
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/5 transition hover:border-white/40 hover:bg-white/10">
                   <span className="text-2xl text-white/50">+</span>
                   <input
@@ -183,7 +172,6 @@ export default function CreateQuestsPage(/* params */) {
             </div>
           </div>
 
-          {/* --- ПРАВА КОЛОНКА (ФОРМА) --- */}
           <form className="space-y-6" onSubmit={handleSaveQuest}>
             <div className="grid gap-6 md:grid-cols-2">
               <div>

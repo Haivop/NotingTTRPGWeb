@@ -76,11 +76,6 @@ export async function apiRequest<T>(
   const { auth = true, headers, body, ...rest } = options;
   const resolvedHeaders = new Headers(headers ?? {});
 
-  // 👇 ВИПРАВЛЕННЯ ТУТ 👇
-  // Ми додаємо 'Content-Type': 'application/json' ТІЛЬКИ якщо:
-  // 1. Є тіло (body)
-  // 2. Заголовок ще не встановлено
-  // 3. Тіло НЕ Є FormData (бо для FormData браузер сам має виставити заголовок з boundary)
   if (
     body &&
     !resolvedHeaders.has("Content-Type") &&

@@ -7,6 +7,10 @@ import { ReadonlyField } from "@/components/ui/ReadonlyField";
 import { useWorldItem } from "@/hooks/useWorldItem";
 import type { CharacterItem } from "@/lib/types";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
+const IMAGE_BASE_URL = `${API_BASE.replace("/api", "")}/uploads`;
+
 type CharacterFieldKey = keyof Pick<
   CharacterItem,
   "name" | "role" | "faction" | "status" | "motivations" | "description"
@@ -48,6 +52,11 @@ export default function CharacterViewPage() {
 
   const character = item as CharacterItem;
 
+  const imageUrl = character.imageUrl
+    ? `${IMAGE_BASE_URL}/${character.imageUrl}`
+    : null;
+  const galleryImages = character.galleryImages || [];
+
   return (
     <PageContainer className="space-y-8">
       <header className="space-y-2">
@@ -60,6 +69,52 @@ export default function CharacterViewPage() {
           rights. Sign in to request co-author access.
         </p>
       </header>
+
+      <GlassPanel title="Portrait & Visuals">
+        <div className="flex flex-col gap-8 md:flex-row">
+          <div className="md:w-1/2">
+            {imageUrl ? (
+              <div className="w-full rounded-2xl border border-white/10 bg-black/30 overflow-hidden shadow-lg">
+                <img
+                  src={imageUrl}
+                  alt={`Portrait of ${character.name}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="h-48 flex items-center justify-center rounded-2xl border border-dashed border-white/10 text-white/50">
+                No Portrait Image
+              </div>
+            )}
+          </div>
+
+          <div className="md:w-1/2">
+            {galleryImages.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                {galleryImages.map((fileName, idx) => (
+                  <div
+                    key={idx}
+                    className="aspect-square overflow-hidden rounded-lg border border-white/10 bg-black/20"
+                  >
+                    <img
+                      src={`${IMAGE_BASE_URL}/${fileName}`}
+                      alt={`Gallery image ${idx}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center rounded-2xl border border-dashed border-white/10 text-white/50 p-4">
+                No supplemental gallery images.
+              </div>
+            )}
+          </div>
+        </div>
+      </GlassPanel>
 
       <GlassPanel title="Profile">
         <div className="space-y-6">

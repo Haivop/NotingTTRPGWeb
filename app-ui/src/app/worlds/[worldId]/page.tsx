@@ -16,10 +16,8 @@ import {
 import { WorldItem } from "@/lib/types";
 import { useRouter, useParams } from "next/navigation";
 
-// 👇 1. Визначаємо базовий шлях до картинок
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
-// Видаляємо '/api' з кінця, щоб отримати корінь (наприклад http://localhost:4001) і додаємо /uploads
 const IMAGE_BASE_URL = `${API_BASE.replace(/\/api\/?$/, "")}/uploads`;
 
 const ITEM_SECTION_CONFIG = [
@@ -90,7 +88,6 @@ export default function WorldOverviewPage() {
   );
   const [itemsError, setItemsError] = useState<string | null>(null);
 
-  // ... (useEffect-и та логіка завантаження залишаються без змін) ...
   useEffect(() => {
     if (!worldId) return;
     setIsLoading(true);
@@ -227,11 +224,9 @@ export default function WorldOverviewPage() {
                 </a>
               ))}
             </nav>
-            {/* ... (Блок співавторів без змін) ... */}
           </div>
         }
       >
-        {/* Секція карти світу (тут ми вже налаштували відображення) */}
         <GlassPanel id="maps" title="SKYMAP">
           <div className="rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_60%_20%,rgba(192,132,252,0.35),transparent_55%),radial-gradient(circle_at_20%_80%,rgba(244,114,182,0.25),transparent_60%)] p-10">
             {world?.mapUrl ? (
@@ -254,7 +249,6 @@ export default function WorldOverviewPage() {
           </div>
         </GlassPanel>
 
-        {/* 👇 2. Передаємо imageBaseUrl у сітку предметів */}
         {ITEM_SECTION_CONFIG.map((section) => (
           <ItemGridSection
             key={section.key}
@@ -265,7 +259,6 @@ export default function WorldOverviewPage() {
             addNewText={
               permissions.canManage ? `+ New ${section.addLabel}` : undefined
             }
-            // ✅ Ось тут ми передаємо URL для картинок
             imageBaseUrl={IMAGE_BASE_URL}
           />
         ))}

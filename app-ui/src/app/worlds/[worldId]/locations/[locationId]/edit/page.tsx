@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getItemById, deleteItem, updateItem } from "@/lib/world-data"; // Функції API
-
+import { getItemById, deleteItem, updateItem } from "@/lib/world-data";
 import { ItemFormData, WorldItem, LocationItem } from "@/lib/types";
 import { useFactionOptions } from "@/hooks/useFactionOptions";
-
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
@@ -14,8 +12,6 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 
-// Створюємо інтерфейс для даних, які відправляються на бекенд,
-// включаючи метадані галереї.
 interface UpdateLocationPayload extends ItemFormData {
   existingGalleryImages?: string[];
 }
@@ -38,7 +34,6 @@ export default function EditLocationPage({
   const [locationData, setLocationData] = useState<LocationItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- СТАН ДЛЯ МЕДІА ---
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +42,6 @@ export default function EditLocationPage({
   const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]); // 🟢 Зберігає об'єкти File
   const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
 
-  // --- 1. Асинхронне завантаження даних (логіка ініціалізації галереї) ---
   useEffect(() => {
     let isMounted = true;
     if (!locationId) {
@@ -77,7 +71,6 @@ export default function EditLocationPage({
     };
   }, [locationId]);
 
-  // --- UI Обробники (ОНОВЛЕНО) ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -86,38 +79,26 @@ export default function EditLocationPage({
     }
   };
 
-  /**
-   * 🟢 ОНОВЛЕНО: Зберігає нові файли у стейт newGalleryFiles.
-   */
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const urls = files.map((file) => URL.createObjectURL(file));
 
-      // Зберігаємо файли
       setNewGalleryFiles((prev) => [...prev, ...files]);
-      // Зберігаємо прев'ю
       setNewGalleryPreviews((prev) => [...prev, ...urls]);
     }
     e.target.value = "";
   };
 
-  /**
-   * 🟢 ОНОВЛЕНО: Видаляє новий файл та прев'ю.
-   */
   const removeNewGalleryImage = (index: number) => {
     setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
     setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  /**
-   * 🟢 НОВИЙ ОБРОБНИК: Видалення існуючого зображення.
-   */
   const removeExistingGalleryImage = (fileName: string) => {
     setExistingGallery((prev) => prev.filter((name) => name !== fileName));
   };
 
-  // --- 2. Обробник надсилання форми (ОНОВЛЕНО) ---
   const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!locationData) return;
@@ -125,22 +106,18 @@ export default function EditLocationPage({
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // 1. Збір текстових даних та метаданих галереї
     const data: UpdateLocationPayload = {
       name: (formData.get("name") as string) || locationData.name,
       faction: formData.get("faction") as string,
       location_type: formData.get("location_type") as string,
       description: formData.get("description") as string,
 
-      // 🟢 ВАЖЛИВО: Передаємо існуючі імена файлів, які залишилися
       existingGalleryImages: existingGallery,
     };
 
-    // 2. Збір файлів
-    const coverFile = imageFile; // Головне фото зі стейту
-    const newGallery = newGalleryFiles; // Нові файли галереї зі стейту
+    const coverFile = imageFile;
+    const newGallery = newGalleryFiles;
 
-    // 3. 🟢 Виклик updateItem з усіма аргументами
     await updateItem(
       locationId,
       data,
@@ -196,9 +173,7 @@ export default function EditLocationPage({
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* 🆕 ЛІВА КОЛОНКА (МЕДІА) */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -239,7 +214,6 @@ export default function EditLocationPage({
               {previewUrl ? "Change Cover" : "Upload Cover"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -251,7 +225,6 @@ export default function EditLocationPage({
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {/* Існуючі картинки */}
                 {existingGallery.map((fileName, idx) => (
                   <div
                     key={`exist-${idx}`}
@@ -262,7 +235,6 @@ export default function EditLocationPage({
                       className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                       alt={`Gallery ${idx}`}
                     />
-                    {/* 🟢 Кнопка видалення для існуючих файлів */}
                     <button
                       type="button"
                       onClick={() => removeExistingGalleryImage(fileName)}
@@ -273,7 +245,6 @@ export default function EditLocationPage({
                   </div>
                 ))}
 
-                {/* Нові прев'ю */}
                 {newGalleryPreviews.map((src, idx) => (
                   <div
                     key={`new-${idx}`}
@@ -297,7 +268,6 @@ export default function EditLocationPage({
                   </div>
                 ))}
 
-                {/* Кнопка + */}
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/[0.02] transition hover:border-purple-400/50 hover:bg-purple-500/[0.05] hover:text-purple-300">
                   <span className="text-2xl font-light text-white/30 transition group-hover:text-purple-300">
                     +
@@ -313,7 +283,6 @@ export default function EditLocationPage({
               </div>
             </div>
 
-            {/* Блок нотаток */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <p className="font-display text-[11px] text-purple-100/80">
                 Location Notes
@@ -328,10 +297,8 @@ export default function EditLocationPage({
             </div>
           </div>
 
-          {/* ПРАВА КОЛОНКА (ФОРМА) */}
           <form className="space-y-6" onSubmit={handleSaveProfile}>
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Name */}
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Name
@@ -342,7 +309,6 @@ export default function EditLocationPage({
                   name="name"
                 />
               </div>
-              {/* Faction */}
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Faction
@@ -364,7 +330,6 @@ export default function EditLocationPage({
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Location_type */}
               <div>
                 <label className="text-xs uppercase tracking-[0.25em] text-white/50">
                   Type

@@ -21,7 +21,6 @@ export default function CreateRegionPage(/* params */) {
   const factionOptions = useFactionOptions(worldId);
   const regionName = "New Region";
 
-  // --- СТАН ДЛЯ МЕДІА ---
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +32,6 @@ export default function CreateRegionPage(/* params */) {
     router.push(`/worlds/${worldId}`);
   };
 
-  // --- Обробники файлів ---
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -57,7 +55,6 @@ export default function CreateRegionPage(/* params */) {
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- 1. Обробник надсилання форми ---
   const handleSaveRegion = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -70,7 +67,6 @@ export default function CreateRegionPage(/* params */) {
       description: formData.get("description") as string,
     };
 
-    // 🆕 Викликаємо API, передаючи файли
     await saveNewItem(worldId, ITEM_TYPE, data, imageFile, galleryFiles);
 
     router.refresh();
@@ -89,9 +85,7 @@ export default function CreateRegionPage(/* params */) {
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* --- ЛІВА КОЛОНКА (МЕДІА) --- */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -113,7 +107,6 @@ export default function CreateRegionPage(/* params */) {
               </div>
             </div>
 
-            {/* Прихований інпут для головного фото */}
             <input
               type="file"
               ref={fileInputRef}
@@ -130,7 +123,6 @@ export default function CreateRegionPage(/* params */) {
               {previewUrl ? "Change Cover" : "Upload Image"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -144,7 +136,6 @@ export default function CreateRegionPage(/* params */) {
               <p className="mt-2 mb-3">Add supporting artwork.</p>
 
               <div className="grid grid-cols-3 gap-2">
-                {/* Прев'ю вибраних картинок */}
                 {galleryPreviews.map((src, idx) => (
                   <div
                     key={idx}
@@ -156,7 +147,6 @@ export default function CreateRegionPage(/* params */) {
                       alt={`Gallery ${idx}`}
                     />
 
-                    {/* Кнопка видалення */}
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
@@ -167,7 +157,6 @@ export default function CreateRegionPage(/* params */) {
                   </div>
                 ))}
 
-                {/* Кнопка додавання (+) */}
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/5 transition hover:border-white/40 hover:bg-white/10">
                   <span className="text-2xl text-white/50">+</span>
                   <input
@@ -182,7 +171,6 @@ export default function CreateRegionPage(/* params */) {
             </div>
           </div>
 
-          {/* --- ПРАВА КОЛОНКА (ФОРМА) --- */}
           <form className="space-y-6" onSubmit={handleSaveRegion}>
             <div className="grid gap-6 md:grid-cols-2">
               <div>

@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react"; // Додали useRef та useState
+import React, { useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { saveNewItem } from "@/lib/world-data";
 import { ItemFormData } from "@/lib/types";
 import { useFactionOptions } from "@/hooks/useFactionOptions";
-
 import { PageContainer } from "@/components/layout/PageContainer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Input } from "@/components/ui/Input";
@@ -23,44 +22,32 @@ export default function CreateArtifactPage() {
 
   const artifactName = "New Artifact";
 
-  // --- 1. СТАН ДЛЯ ЗОБРАЖЕНЬ ---
-  // Головне фото (обкладинка)
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Галерея
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
-  // const galleryInputRef = useRef<HTMLInputElement>(null); // Можна використовувати, якщо хочеш окрему кнопку, але ми використаємо label
 
-  // --- 2. ОБРОБНИКИ ---
-
-  // Вибір головного фото
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
-      // Створюємо URL для прев'ю
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  // Вибір файлів для галереї (множинний вибір)
   const handleGallerySelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
 
-      // Додаємо нові файли до існуючих
       setGalleryFiles((prev) => [...prev, ...newFiles]);
 
-      // Створюємо прев'ю для нових файлів і додаємо до списку
       const newUrls = newFiles.map((file) => URL.createObjectURL(file));
       setGalleryPreviews((prev) => [...prev, ...newUrls]);
     }
   };
 
-  // Видалення фото з галереї (до завантаження)
   const removeGalleryImage = (index: number) => {
     setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
@@ -70,7 +57,6 @@ export default function CreateArtifactPage() {
     router.push(`/worlds/${worldId}`);
   };
 
-  // --- 3. ЗБЕРЕЖЕННЯ ---
   const handleSaveArtifact = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -82,9 +68,6 @@ export default function CreateArtifactPage() {
       description: formData.get("description") as string,
     };
 
-    // ❗ ВАЖЛИВО: Ми передаємо файли у функцію збереження.
-    // Тобі потрібно буде оновити `saveNewItem` в lib/world-data.ts,
-    // щоб вона приймала imageFile та galleryFiles.
     await saveNewItem(worldId, ITEM_TYPE, data, imageFile, galleryFiles);
 
     router.refresh();
@@ -102,9 +85,7 @@ export default function CreateArtifactPage() {
 
       <GlassPanel>
         <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          {/* --- ЛІВА КОЛОНКА (МЕДІА) --- */}
           <div className="flex flex-col gap-4">
-            {/* 1. ГОЛОВНЕ ФОТО */}
             <div
               className="relative h-64 w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -119,7 +100,6 @@ export default function CreateArtifactPage() {
                 <div className="h-full w-full bg-[radial-gradient(circle_at_50%_0%,rgba(192,132,252,0.45),transparent_60%),radial-gradient(circle_at_50%_100%,rgba(244,114,182,0.3),transparent_65%)]" />
               )}
 
-              {/* Оверлей з текстом при наведенні або якщо пусто */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                 <span className="text-xs font-bold uppercase tracking-widest text-white">
                   {previewUrl ? "Change Image" : "Upload Image"}
@@ -127,12 +107,11 @@ export default function CreateArtifactPage() {
               </div>
             </div>
 
-            {/* Прихований інпут для головного фото */}
             <input
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept="image/*" // Тільки картинки
+              accept="image/*"
               onChange={handleFileSelect}
             />
 
@@ -144,7 +123,6 @@ export default function CreateArtifactPage() {
               {previewUrl ? "Change Image" : "Upload Image"}
             </button>
 
-            {/* 2. ГАЛЕРЕЯ */}
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-xs text-white/60">
               <div className="flex items-center justify-between">
                 <p className="font-display text-[11px] text-purple-100/80">
@@ -158,7 +136,6 @@ export default function CreateArtifactPage() {
               <p className="mt-2 mb-3">Add supporting artwork.</p>
 
               <div className="grid grid-cols-3 gap-2">
-                {/* Прев'ю вибраних картинок */}
                 {galleryPreviews.map((src, idx) => (
                   <div
                     key={idx}
@@ -170,7 +147,6 @@ export default function CreateArtifactPage() {
                       alt={`Gallery ${idx}`}
                     />
 
-                    {/* Кнопка видалення */}
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(idx)}
@@ -181,12 +157,11 @@ export default function CreateArtifactPage() {
                   </div>
                 ))}
 
-                {/* Кнопка додавання (+) */}
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-white/20 bg-white/5 transition hover:border-white/40 hover:bg-white/10">
                   <span className="text-2xl text-white/50">+</span>
                   <input
                     type="file"
-                    multiple // Дозволяє вибирати багато файлів
+                    multiple
                     className="hidden"
                     accept="image/*"
                     onChange={handleGallerySelect}
@@ -196,7 +171,6 @@ export default function CreateArtifactPage() {
             </div>
           </div>
 
-          {/* --- ПРАВА КОЛОНКА (ФОРМА) --- */}
           <form className="space-y-6" onSubmit={handleSaveArtifact}>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
