@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateWorldDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class CreateWorldDto {
 }
 exports.CreateWorldDto = CreateWorldDto;
@@ -50,12 +51,22 @@ __decorate([
 ], CreateWorldDto.prototype, "startingRegion", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
 ], CreateWorldDto.prototype, "contributors", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
+    (0, class_transformer_1.Transform)(({ obj, key }) => {
+        const rawValue = obj[key];
+        console.log(`🔍 FIX TRANSFORM. Raw: [${rawValue}]`);
+        if (rawValue === 'true' || rawValue === true)
+            return true;
+        if (rawValue === 'false' || rawValue === false)
+            return false;
+        return rawValue;
+    }),
     __metadata("design:type", Boolean)
 ], CreateWorldDto.prototype, "isPublic", void 0);
 __decorate([

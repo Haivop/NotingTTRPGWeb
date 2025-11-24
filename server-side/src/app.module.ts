@@ -7,12 +7,18 @@ import { UsersModule } from './users/users.module';
 import { WorldsModule } from './worlds/worlds.module';
 import { TokensModule } from './tokens/tokens.module';
 import { DiscoveryModule } from './discovery/discovery.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

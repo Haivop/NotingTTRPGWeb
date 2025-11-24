@@ -12,6 +12,7 @@ interface ItemGridSectionProps {
   items: WorldItem[];
   canEdit?: boolean;
   addNewText?: string;
+  imageBaseUrl?: string; // 🆕 Додали цей проп
 }
 
 export function ItemGridSection({
@@ -20,6 +21,7 @@ export function ItemGridSection({
   items,
   canEdit = false,
   addNewText,
+  imageBaseUrl, // 🆕 Деструктуризуємо його
 }: ItemGridSectionProps) {
   const router = useRouter();
   const params = useParams();
@@ -51,9 +53,35 @@ export function ItemGridSection({
                 : "cursor-pointer hover:border-white/20"
             }`}
           >
-            <div className="flex h-20 items-center justify-center rounded-lg bg-gray-600/50 text-xs">
-              [Image Placeholder]
+            {/* 👇 ПОЧАТОК ЗМІН: Блок зображення */}
+            <div className="relative h-20 w-full rounded-lg bg-gray-600/20">
+              {item.imageUrl && imageBaseUrl ? (
+                <img
+                  src={`${imageBaseUrl}/${item.imageUrl}`}
+                  alt={item.name}
+                  className="h-full w-full rounded-lg object-cover"
+                  onError={(e) => {
+                    // Якщо помилка завантаження - ховаємо картинку, показуємо заглушку знизу
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden"
+                    );
+                  }}
+                />
+              ) : null}
+
+              {/* Заглушка (відображається якщо немає картинки або сталася помилка) */}
+              <div
+                className={`${
+                  item.imageUrl ? "hidden" : "flex"
+                } h-full w-full items-center justify-center rounded-lg bg-gray-600/50 text-xs text-white/30`}
+              >
+                {/* Можна замінити текст на іконку для кращого вигляду */}
+                [No Image]
+              </div>
             </div>
+            {/* 👆 КІНЕЦЬ ЗМІН */}
+
             <p className="mt-2 font-display text-sm text-purple-100/90">
               {item.name}
             </p>

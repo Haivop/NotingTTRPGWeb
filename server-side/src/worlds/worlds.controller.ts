@@ -8,6 +8,8 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { WorldsService } from './worlds.service';
 import { CreateWorldDto } from './dto/create-world.dto';
@@ -19,6 +21,10 @@ import { WorldItemsService } from './items/world-items.service';
 import { CreateWorldItemDto } from './items/dto/create-world-item.dto';
 import { UpdateWorldItemDto } from './items/dto/update-world-item.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { UploadedFiles } from '@nestjs/common';
 
 @Controller('worlds')
 export class WorldsController {
@@ -56,18 +62,31 @@ export class WorldsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createWorld(@Body() dto: CreateWorldDto, @CurrentUser() user: JwtPayload) {
-    return this.worldsService.createWorld(user.sub, dto);
+  @UseInterceptors(FileInterceptor('image'))
+  createWorld(
+    @Body() dto: CreateWorldDto,
+    @CurrentUser() user: JwtPayload,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    return this.worldsService.createWorld(user.sub, dto, image);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  updateWorld(
+  @UseInterceptors(FileInterceptor('image'))
+  async updateWorld(
     @Param('id') worldId: string,
     @Body() dto: UpdateWorldDto,
     @CurrentUser() user: JwtPayload,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    return this.worldsService.updateWorld(worldId, user.sub, dto);
+    if (dto.contributors) {
+      if (!Array.isArray(dto.contributors)) {
+        dto.contributors = [dto.contributors] as string[];
+      }
+    } else {
+    }
+    return this.worldsService.updateWorld(worldId, user.sub, dto, image);
   }
 
   @Delete(':id')
@@ -100,13 +119,24 @@ export class WorldsController {
 
   @Post(':id/items')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'image', maxCount: 1 },
+      { name: 'gallery', maxCount: 10 },
+    ]),
+  )
   async createItem(
     @Param('id') worldId: string,
     @Body() dto: CreateWorldItemDto,
     @CurrentUser() user: JwtPayload,
+    @UploadedFiles() files: { image?: Express.Multer.File[]; gallery?: Express.Multer.File[] },
   ) {
     await this.worldsService.ensureCanEdit(worldId, user.sub);
-    return this.worldItemsService.create(worldId, dto);
+
+    const mainImage = files?.image?.[0];
+    const galleryImages = files?.gallery;
+
+    return this.worldItemsService.create(worldId, dto, mainImage, galleryImages);
   }
 
   @Patch(':id/items/:itemId')

@@ -50,8 +50,8 @@ __decorate([
     __metadata("design:type", String)
 ], World.prototype, "startingRegion", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
-    __metadata("design:type", String)
+    (0, typeorm_1.Column)('text', { array: true, nullable: true }),
+    __metadata("design:type", Array)
 ], World.prototype, "contributors", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'is_public', default: true }),

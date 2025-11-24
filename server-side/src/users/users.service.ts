@@ -11,11 +11,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(data: {
-    username: string;
-    email: string;
-    passwordHash: string;
-  }): Promise<User> {
+  async create(data: { username: string; email: string; passwordHash: string }): Promise<User> {
     const user = this.usersRepository.create({
       username: data.username,
       email: data.email,
@@ -40,6 +36,12 @@ export class UsersService {
     return user;
   }
 
+  async checkExistenceByEmail(email: string): Promise<boolean> {
+    const user = await this.findByEmail(email);
+
+    return !!user;
+  }
+
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
 
@@ -52,7 +54,9 @@ export class UsersService {
     }
 
     if (dto.email && dto.email.toLowerCase() !== user.email.toLowerCase()) {
-      const existing = await this.usersRepository.findOne({ where: { email: dto.email.toLowerCase() } });
+      const existing = await this.usersRepository.findOne({
+        where: { email: dto.email.toLowerCase() },
+      });
       if (existing) {
         throw new BadRequestException('Email already in use');
       }

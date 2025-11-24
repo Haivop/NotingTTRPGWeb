@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { World } from '../entities/world.entity';
@@ -10,6 +6,10 @@ import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
 import { WorldTag } from '../entities/world-tag.entity';
 import { User } from '../entities/user.entity';
+
+import * as fs from 'fs';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WorldsService {
@@ -84,13 +84,19 @@ export class WorldsService {
     return this.toResponse(world);
   }
 
-  async createWorld(ownerId: string, dto: CreateWorldDto) {
+  async createWorld(ownerId: string, dto: CreateWorldDto, imageFile?: Express.Multer.File) {
+    let mapUrl: string | null = dto.mapUrl || null;
+
+    if (imageFile) {
+      mapUrl = await this.saveFile(imageFile);
+    }
+
     const world = this.worldsRepository.create({
       ownerId,
       owner: { id: ownerId } as User,
       name: dto.name,
       description: dto.description ?? '',
-      mapUrl: dto.mapUrl,
+      mapUrl: mapUrl,
       type: dto.type,
       era: dto.era,
       themes: dto.themes,
@@ -111,8 +117,16 @@ export class WorldsService {
     return this.toResponse(saved);
   }
 
-  async updateWorld(worldId: string, userId: string, dto: UpdateWorldDto) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors', 'tags'] });
+  async updateWorld(
+    worldId: string,
+    userId: string,
+    dto: UpdateWorldDto,
+    imageFile?: Express.Multer.File,
+  ) {
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors', 'tags'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -121,10 +135,16 @@ export class WorldsService {
       throw new ForbiddenException('You are not allowed to update this world');
     }
 
+    if (imageFile) {
+      const fileName = await this.saveFile(imageFile);
+      world.mapUrl = fileName;
+    } else if (dto.mapUrl !== undefined) {
+      world.mapUrl = dto.mapUrl;
+    }
+
     Object.assign(world, {
       name: dto.name ?? world.name,
       description: dto.description ?? world.description,
-      mapUrl: dto.mapUrl ?? world.mapUrl,
       type: dto.type ?? world.type,
       era: dto.era ?? world.era,
       themes: dto.themes ?? world.themes,
@@ -150,7 +170,10 @@ export class WorldsService {
   }
 
   async deleteWorld(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -177,7 +200,10 @@ export class WorldsService {
   }
 
   async ensureCanView(worldId: string, userId?: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -188,7 +214,10 @@ export class WorldsService {
   }
 
   async ensureCanEdit(worldId: string, userId: string) {
-    const world = await this.worldsRepository.findOne({ where: { id: worldId }, relations: ['coAuthors'] });
+    const world = await this.worldsRepository.findOne({
+      where: { id: worldId },
+      relations: ['coAuthors'],
+    });
     if (!world) {
       throw new NotFoundException('World not found');
     }
@@ -224,5 +253,21 @@ export class WorldsService {
       coAuthorIds: world.coAuthors?.map((user) => user.id) ?? [],
       updatedAt: world.updatedAt,
     };
+  }
+
+  private async saveFile(file: Express.Multer.File): Promise<string> {
+    const uploadDir = path.resolve(__dirname, '..', '..', 'uploads');
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${uuidv4()}${fileExt}`;
+    const filePath = path.join(uploadDir, fileName);
+
+    fs.writeFileSync(filePath, file.buffer);
+
+    return fileName;
   }
 }

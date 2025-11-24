@@ -27,6 +27,12 @@ export class WorldItem {
   @Column({ length: 255 })
   name: string;
 
+  @Column({ name: 'image_url', nullable: true })
+  imageUrl: string;
+
+  @Column('simple-array', { name: 'gallery_images', nullable: true })
+  galleryImages: string[];
+
   @Column({ type: 'jsonb', default: () => "'{}'" })
   payload: Record<string, any>;
 
