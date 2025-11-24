@@ -23,7 +23,7 @@ import { UpdateWorldItemDto } from './items/dto/update-world-item.dto';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
-import { FileFieldsInterceptor } from '@nestjs/platform-express'; // ⚠️ Новий імпорт
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common';
 
 @Controller('worlds')
@@ -62,13 +62,12 @@ export class WorldsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image')) // 'image' має співпадати з formData.append('image', ...) на фронті
+  @UseInterceptors(FileInterceptor('image'))
   createWorld(
     @Body() dto: CreateWorldDto,
     @CurrentUser() user: JwtPayload,
-    @UploadedFile() image?: Express.Multer.File, // Отримуємо файл
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    // Передаємо файл у сервіс (потрібно буде оновити метод у Service)
     return this.worldsService.createWorld(user.sub, dto, image);
   }
 
@@ -76,34 +75,17 @@ export class WorldsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   async updateWorld(
-    // Зробіть метод асинхронним
     @Param('id') worldId: string,
     @Body() dto: UpdateWorldDto,
     @CurrentUser() user: JwtPayload,
     @UploadedFile() image?: Express.Multer.File,
   ) {
-    // 🟢 ВИПРАВЛЕННЯ ВАЛІДАЦІЇ CONTRIBUTORS
     if (dto.contributors) {
-      // 1. Якщо прийшов рядок (Multer/NestJS часто повертає рядок для одиничного елемента форми),
-      // ми ПРИМУСОВО перетворюємо його на масив, щоб відповідати вимогам DTO.
       if (!Array.isArray(dto.contributors)) {
-        // ⚠️ Потрібно бути впевненим, що це не об'єкт, але для FormData з одним елементом це майже завжди рядок.
         dto.contributors = [dto.contributors] as string[];
       }
     } else {
-      // Якщо contributors не був надісланий (або порожній), встановлюємо його як порожній масив,
-      // якщо ваш сервіс очікує його, або просто дозволяємо DTO обробити це через @IsOptional().
-      // Якщо ваше DTO має @IsOptional(), цей блок не є строго необхідним.
     }
-
-    // 🟢 ТУТ МОЖНА ДОДАТИ ПЕРЕВІРКУ: Чи є ко-автор автором світу
-    // (Хоча це краще робити в сервісі)
-
-    // 🟢 ПЕРЕВІРКА: Якщо ви оновлюєте файл, додайте його до DTO (якщо сервіс очікує DTO+файл)
-    // Якщо ваш сервіс обробляє файл окремо, цей крок не потрібен.
-    // return this.worldsService.updateWorld(worldId, user.sub, dto, image);
-
-    // Припускаємо, що service очікує оновлене DTO та файл
     return this.worldsService.updateWorld(worldId, user.sub, dto, image);
   }
 
@@ -137,7 +119,6 @@ export class WorldsController {
 
   @Post(':id/items')
   @UseGuards(JwtAuthGuard)
-  // 👇 Змінюємо інтерцептор, щоб приймати 'image' (1 шт) та 'gallery' (багато)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'image', maxCount: 1 },
@@ -148,16 +129,13 @@ export class WorldsController {
     @Param('id') worldId: string,
     @Body() dto: CreateWorldItemDto,
     @CurrentUser() user: JwtPayload,
-    // 👇 Отримуємо об'єкт файлів
     @UploadedFiles() files: { image?: Express.Multer.File[]; gallery?: Express.Multer.File[] },
   ) {
     await this.worldsService.ensureCanEdit(worldId, user.sub);
 
-    // Витягуємо файли (безпечна перевірка)
     const mainImage = files?.image?.[0];
     const galleryImages = files?.gallery;
 
-    // Передаємо в сервіс
     return this.worldItemsService.create(worldId, dto, mainImage, galleryImages);
   }
 

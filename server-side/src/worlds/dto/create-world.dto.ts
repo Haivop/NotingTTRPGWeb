@@ -37,12 +37,9 @@ export class CreateWorldDto {
   @IsOptional()
   @IsBoolean()
   @Transform(({ obj, key }) => {
-    // obj — це "сирий" об'єкт запиту. Там лежить рядок "false".
-    // Ми ігноруємо `value`, бо Nest його вже зіпсував.
+    const rawValue = obj[key];
 
-    const rawValue = obj[key]; // Дістаємо "false" (string)
-
-    console.log(`🔍 FIX TRANSFORM. Raw: [${rawValue}]`); // Для перевірки
+    console.log(`🔍 FIX TRANSFORM. Raw: [${rawValue}]`);
 
     if (rawValue === 'true' || rawValue === true) return true;
     if (rawValue === 'false' || rawValue === false) return false;

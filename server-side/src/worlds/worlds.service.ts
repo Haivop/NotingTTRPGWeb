@@ -87,7 +87,6 @@ export class WorldsService {
   async createWorld(ownerId: string, dto: CreateWorldDto, imageFile?: Express.Multer.File) {
     let mapUrl: string | null = dto.mapUrl || null;
 
-    // Якщо файл прийшов - зберігаємо його
     if (imageFile) {
       mapUrl = await this.saveFile(imageFile);
     }
@@ -97,7 +96,7 @@ export class WorldsService {
       owner: { id: ownerId } as User,
       name: dto.name,
       description: dto.description ?? '',
-      mapUrl: mapUrl, // Використовуємо збережений URL або той, що в DTO (якщо текст)
+      mapUrl: mapUrl,
       type: dto.type,
       era: dto.era,
       themes: dto.themes,
@@ -118,7 +117,6 @@ export class WorldsService {
     return this.toResponse(saved);
   }
 
-  // 👇 ОНОВЛЕНИЙ UPDATE
   async updateWorld(
     worldId: string,
     userId: string,
@@ -137,13 +135,10 @@ export class WorldsService {
       throw new ForbiddenException('You are not allowed to update this world');
     }
 
-    // Якщо прийшов новий файл - зберігаємо і оновлюємо URL
     if (imageFile) {
       const fileName = await this.saveFile(imageFile);
       world.mapUrl = fileName;
-      // (Опціонально) тут можна видалити старий файл, якщо він був
     } else if (dto.mapUrl !== undefined) {
-      // Якщо файлу немає, але в DTO прийшов mapUrl (наприклад, null щоб видалити карту)
       world.mapUrl = dto.mapUrl;
     }
 
@@ -261,25 +256,18 @@ export class WorldsService {
   }
 
   private async saveFile(file: Express.Multer.File): Promise<string> {
-    // 1. Визначаємо шлях до папки uploads (корінь проєкту/uploads)
     const uploadDir = path.resolve(__dirname, '..', '..', 'uploads');
 
-    // 2. Створюємо папку, якщо її немає
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // 3. Генеруємо унікальне ім'я (uuid + розширення файлу)
-    // Наприклад: 550e8400-e29b-41d4-a716-446655440000.png
     const fileExt = path.extname(file.originalname);
     const fileName = `${uuidv4()}${fileExt}`;
     const filePath = path.join(uploadDir, fileName);
 
-    // 4. Записуємо файл на диск
     fs.writeFileSync(filePath, file.buffer);
 
-    // 5. Повертаємо лише ім'я файлу (або повний URL, залежно від того як ти хочеш віддавати)
-    // Наприклад, якщо ти налаштуєш StaticServe, то клієнт буде брати по http://host/uploads/filename
     return fileName;
   }
 }

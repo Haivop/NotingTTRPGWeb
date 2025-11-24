@@ -17,8 +17,8 @@ import { join } from 'path';
       load: [configuration],
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // Шлях до папки uploads
-      serveRoot: '/uploads', // Префікс URL (наприклад: localhost:3000/uploads/image.png)
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

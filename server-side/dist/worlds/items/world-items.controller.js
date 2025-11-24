@@ -32,10 +32,6 @@ let WorldItemsController = class WorldItemsController {
         return this.worldItemsService.toResponse(item);
     }
     async updateItem(itemId, files, dto, user) {
-        console.log('=========================================');
-        console.log('[BODY] Received DTO:', dto);
-        console.log('[FILES] Received Files:', files.map((f) => f.fieldname + ':' + f.originalname));
-        console.log('=========================================');
         const imageFile = files.find((f) => f.fieldname === 'image');
         const galleryFiles = files.filter((f) => f.fieldname === 'galleryImages');
         console.log(galleryFiles);

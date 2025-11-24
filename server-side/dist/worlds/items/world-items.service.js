@@ -98,14 +98,6 @@ let WorldItemsService = class WorldItemsService {
         if (!item) {
             throw new common_1.NotFoundException('Item not found');
         }
-        console.log('=========================================');
-        console.log('🔄 SERVICE UPDATE: START');
-        console.log(`[Item: ${itemId}] Old Gallery:`, item.galleryImages);
-        console.log('[DTO] Existing to keep:', dto.existingGalleryImages);
-        console.log(`[FILE] New Cover: ${(imageFile === null || imageFile === void 0 ? void 0 : imageFile.originalname) || 'None'}`);
-        console.log(`[FILE] New Gallery Count: ${(galleryFiles === null || galleryFiles === void 0 ? void 0 : galleryFiles.length) || 0}`);
-        console.log(galleryFiles);
-        console.log('=========================================');
         let uploadedNewFiles = [];
         const oldGalleryImages = item.galleryImages || [];
         let filesToKeep = [];
