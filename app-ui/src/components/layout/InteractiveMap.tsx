@@ -112,14 +112,14 @@ export const InteractiveMap = ({
     setIsCreating(false);
     setTempCoords(null);
     setSelectedItemId("");
-    // window.location.reload(); // Краще оновлювати стейт локально, ніж перезавантажувати сторінку
+    window.location.reload();
   };
 
   const handlePinClick = (e: React.MouseEvent, pin: MapPin) => {
     e.stopPropagation();
     if (pin.linkedItem) {
       router.push(
-        `/worlds/${worldId}/${pin.linkedItem.type}/${pin.linkedItem.id}`
+        `/worlds/${worldId}/${pin.linkedItem.type}/${pin.linkedItem.id}/view`
       );
     }
   };
