@@ -4,17 +4,22 @@ import { useEffect, useMemo, useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { TwoColumnLayout } from "@/components/layout/TwoColumnLayout";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { ItemGridSection } from "@/components/layout/ItemGridSection"; // Переконайся, що шлях правильний
+import { ItemGridSection } from "@/components/layout/ItemGridSection";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/components/layout/AuthContext";
+import { ExportMenu } from "@/components/layout/ExportMenu";
 import {
   deleteWorld,
   getItemsByType,
   getWorldById,
+  getMapPins,
   WorldEntity,
+  deleteMapPin,
+  createMapPin,
 } from "@/lib/world-data";
 import { WorldItem } from "@/lib/types";
 import { useRouter, useParams } from "next/navigation";
+import { InteractiveMap } from "@/components/layout/InteractiveMap";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4001/api";
@@ -87,6 +92,7 @@ export default function WorldOverviewPage() {
     {}
   );
   const [itemsError, setItemsError] = useState<string | null>(null);
+  const [mapPins, setMapPins] = useState<any[]>([]);
 
   useEffect(() => {
     if (!worldId) return;
@@ -103,32 +109,41 @@ export default function WorldOverviewPage() {
       .finally(() => setIsLoading(false));
   }, [worldId]);
 
+  const allItemsFlat = useMemo(() => {
+    return Object.values(collections).flat();
+  }, [collections]);
+
   useEffect(() => {
     if (!worldId) return;
     let cancelled = false;
 
-    const fetchCollections = async () => {
+    const fetchData = async () => {
       try {
+        // 1. Завантажуємо колекції
         const results = await Promise.all(
           ITEM_SECTION_CONFIG.map((section) =>
             getItemsByType(worldId, section.key)
           )
         );
+
+        // 2. Завантажуємо піни
+        const pinsData = await getMapPins(worldId);
+
         if (cancelled) return;
+
         const next: Record<string, WorldItem[]> = {};
         ITEM_SECTION_CONFIG.forEach((section, index) => {
           next[section.key] = results[index];
         });
+
         setCollections(next);
-        setItemsError(null);
+        setMapPins(pinsData); // Зберігаємо піни
       } catch (err) {
-        if (cancelled) return;
-        console.error("Failed to load world items", err);
-        setItemsError("Unable to load world entries.");
+        console.error("Failed to load world data", err);
       }
     };
 
-    fetchCollections();
+    fetchData();
     return () => {
       cancelled = true;
     };
@@ -174,9 +189,43 @@ export default function WorldOverviewPage() {
     );
   }
 
+  console.log("--- DEBUG: MAP DATA READY ---");
+  console.log(`Map URL: ${world?.mapUrl ? "Loaded" : "Missing"}`);
+  console.log(`Total Pins Fetched: ${mapPins.length}`);
+  if (mapPins.length > 0) {
+    console.log("First Pin Coords (x, y):", mapPins[0].x, mapPins[0].y);
+    console.log("First Pin Item Name:", mapPins[0].linkedItem?.name);
+  }
+  console.log("Can Edit:", permissions.canManage);
+  console.log("-------------------------------");
+
   const getSectionCount = (key: string) => {
     if (key === "maps") return world?.mapUrl ? 1 : 0;
     return collections[key]?.length ?? 0;
+  };
+
+  const handleSavePin = async (pinData: {
+    x: number;
+    y: number;
+    itemId: string;
+  }) => {
+    try {
+      const newPin = await createMapPin(worldId, pinData);
+      setMapPins((prev) => [...prev, newPin]); // Оновлюємо UI
+    } catch (e) {
+      console.error("Failed to create pin", e);
+      alert("Error creating pin");
+    }
+  };
+
+  const handleDeletePin = async (pinId: string) => {
+    if (!window.confirm("Remove this pin?")) return;
+    try {
+      await deleteMapPin(pinId);
+      setMapPins((prev) => prev.filter((p) => p.id !== pinId)); // Оновлюємо UI
+    } catch (e) {
+      console.error("Failed to delete pin", e);
+    }
   };
 
   return (
@@ -195,6 +244,9 @@ export default function WorldOverviewPage() {
             </p>
             {error && <p className="text-sm text-red-400">{error}</p>}
           </div>
+          {world && collections && (
+            <ExportMenu world={world} collections={collections} />
+          )}
           {permissions.canDelete && (
             <button
               onClick={handleDeleteWorld}
@@ -228,23 +280,27 @@ export default function WorldOverviewPage() {
         }
       >
         <GlassPanel id="maps" title="SKYMAP">
-          <div className="rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_60%_20%,rgba(192,132,252,0.35),transparent_55%),radial-gradient(circle_at_20%_80%,rgba(244,114,182,0.25),transparent_60%)] p-10">
+          <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
             {world?.mapUrl ? (
-              <div className="overflow-hidden rounded-3xl border border-white/15 bg-black/30">
-                <img
-                  src={`${IMAGE_BASE_URL}/${world.mapUrl}`}
-                  alt={`${worldName} Map`}
-                  className="h-auto w-full object-cover min-h-[300px]"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
+              <InteractiveMap
+                mapUrl={`${IMAGE_BASE_URL}/${world.mapUrl}`}
+                initialPins={mapPins}
+                availableItems={allItemsFlat}
+                isEditable={permissions.canManage}
+                worldId={worldId}
+                onSavePin={handleSavePin}
+                onDeletePin={handleDeletePin}
+              />
             ) : (
-              <div className="h-72 rounded-3xl border border-white/15 bg-black/30" />
+              <div className="h-72 flex items-center justify-center rounded-3xl border border-white/15 bg-black/30 text-white/50">
+                Map not uploaded yet.
+              </div>
             )}
-            <p className="mt-4 text-xs uppercase tracking-[0.28em] text-white/45">
-              Drag to pan • Scroll to zoom
+
+            <p className="mt-4 text-xs uppercase tracking-[0.28em] text-white/45 text-center">
+              {permissions.canManage
+                ? "Click map to add pin • Hover to view details"
+                : "Hover pins to view details"}
             </p>
           </div>
         </GlassPanel>

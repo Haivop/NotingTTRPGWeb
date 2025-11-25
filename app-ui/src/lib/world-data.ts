@@ -250,3 +250,23 @@ export async function updateWorldMetadata(
 export async function deleteWorld(worldId: string): Promise<void> {
   await apiRequest(`/worlds/${worldId}`, { method: "DELETE" });
 }
+
+export async function getMapPins(worldId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return apiRequest<any[]>(`/worlds/${worldId}/pins`);
+}
+
+export async function createMapPin(
+  worldId: string,
+  data: { x: number; y: number; itemId: string }
+) {
+  return apiRequest(`/worlds/${worldId}/pins`, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export async function deleteMapPin(pinId: string) {
+  return apiRequest(`/pins/${pinId}`, { method: "DELETE" });
+}

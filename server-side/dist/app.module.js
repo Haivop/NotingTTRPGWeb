@@ -17,6 +17,7 @@ const configuration_1 = __importDefault(require("./config/configuration"));
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
 const worlds_module_1 = require("./worlds/worlds.module");
+const map_pins_module_1 = require("./worlds/mapPins/map-pins.module");
 const tokens_module_1 = require("./tokens/tokens.module");
 const discovery_module_1 = require("./discovery/discovery.module");
 const serve_static_1 = require("@nestjs/serve-static");
@@ -56,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             worlds_module_1.WorldsModule,
+            map_pins_module_1.MapPinsModule,
             discovery_module_1.DiscoveryModule,
         ],
     })
