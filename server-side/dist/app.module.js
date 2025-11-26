@@ -22,6 +22,7 @@ const tokens_module_1 = require("./tokens/tokens.module");
 const discovery_module_1 = require("./discovery/discovery.module");
 const serve_static_1 = require("@nestjs/serve-static");
 const path_1 = require("path");
+const search_module_1 = require("./search/search.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -59,6 +60,7 @@ exports.AppModule = AppModule = __decorate([
             worlds_module_1.WorldsModule,
             map_pins_module_1.MapPinsModule,
             discovery_module_1.DiscoveryModule,
+            search_module_1.SearchModule,
         ],
     })
 ], AppModule);

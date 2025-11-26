@@ -10,6 +10,7 @@ import { TokensModule } from './tokens/tokens.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { join } from 'path';
     WorldsModule,
     MapPinsModule,
     DiscoveryModule,
+    SearchModule,
   ],
 })
 export class AppModule {}

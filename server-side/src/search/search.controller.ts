@@ -1,0 +1,22 @@
+import { Controller, Get, Query } from '@nestjs/common';
+import { SearchService } from './search.service';
+
+@Controller('search')
+export class SearchController {
+  constructor(private readonly searchService: SearchService) {}
+
+  @Get()
+  async search(
+    @Query('q') query?: string,
+    @Query('type') type?: string,
+    @Query('worldLimit') worldLimit?: string,
+    @Query('itemLimit') itemLimit?: string,
+  ) {
+    return this.searchService.search({
+      query,
+      type,
+      worldLimit: Number(worldLimit) || undefined,
+      itemLimit: Number(itemLimit) || undefined,
+    });
+  }
+}
